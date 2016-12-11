@@ -1,43 +1,43 @@
 package multirange;
 
-import com.sun.javafx.util.Utils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
+import javafx.css.CssMetaData;
+import javafx.css.PseudoClass;
+import javafx.css.Styleable;
 import javafx.scene.control.Control;
+import javafx.scene.control.Skin;
+import javafx.util.Pair;
+import multirange.skin.MultiRangeSkin;
 
-public class MultiRange extends Control {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class MultiRange extends Control implements MultiRangeAPI {
 
     /**
-     * Creates a default MultiRange instance.
+     * Creates a default (horizontal) MultiRange instance.
      */
     public MultiRange() {
         this(0, 1.0);
     }
 
     /**
-     * Constructs a MultiRange control with the specified selector min and max value values.
+     * Instantiates a default (horizontal) MultiRange with the specified min/max values.
      *
      * @param min Selector minimum value
      * @param max Selector maximum value
      */
     public MultiRange(double min, double max) {
+        getStyleClass().setAll(DEFAULT_STYLE_CLASS);
+
         setMax(max);
         setMin(min);
         adjustValues();
-        initialize();
     }
 
-    /**
-     * Initialize the style class
-     */
-    private void initialize() {
-        getStyleClass().setAll(DEFAULT_STYLE_CLASS);
-    }
-
-    @Override
-    public String getUserAgentStylesheet() {
-        return MultiRange.class.getResource("multirange.css").toExternalForm();
-    }
+    //***************************************************************************************
 
     /**
      * Ensures that min is always < max, that value is always
@@ -45,38 +45,72 @@ public class MultiRange extends Control {
      * value will always be set to align with a tick mark.
      */
     private void adjustValues() {
-        if ((getValue() < getMin() || getValue() > getMax()) /* &&  !isReadOnly(value)*/)
-            setValue(Utils.clamp(getMin(), getValue(), getMax()));
+
     }
 
-    /**
-     * Adjusts {@link #valueProperty() value} to match <code>newValue</code>. The
-     * <code>value</code>is the actual amount between the
-     * {@link #minProperty() min} and {@link #maxProperty() max}. This function
-     * also takes into account {@link #snapToTicksProperty() snapToTicks}, which
-     * is the main difference between adjustValue and setValue. It also ensures
-     * that the value is some valid number between min and max.
-     *
-     * @expert This function is intended to be used by experts, primarily
-     * by those implementing new Skins or Behaviors. It is not common
-     * for developers or designers to access this function directly.
-     */
-    public void adjustValue(double newValue) {
-        // figure out the "value" associated with the specified position
-        final double _min = getMin();
-        final double _max = getMax();
-        if (_max <= _min) return;
-        newValue = newValue < _min ? _min : newValue;
-        newValue = newValue > _max ? _max : newValue;
+    /***************************************************************************
+     *                                                                         *
+     *                              Properties                                 *
+     *                                                                         *
+     **************************************************************************/
 
-        setValue(snapValueToTicks(newValue));
+
+    private DoubleProperty rangeA;
+
+    public final void setRangeA(double value) {
+        rangeAProperty().set(value);
     }
 
-    /****************************************
-     *                                      *
-     * Properties copied from Slider        *
-     *                                      *
-     ***************************************/
+    public final Double getRangeA() {
+        return rangeA == null ? null : rangeA.getValue();
+    }
+
+    public final DoubleProperty rangeAProperty() {
+
+        // TODO
+
+
+        return rangeA;
+    }
+
+
+    private DoubleProperty rangeB;
+
+    public final void setRangeB(double value) {
+        rangeBProperty().set(value);
+
+        ranges.add(new Pair<>(rangeA, rangeB));
+        rangeA = null;
+        rangeB = null;
+    }
+
+    public final double getRangeB() {
+        return rangeB == null ? 100 : rangeB.get();
+    }
+
+    public final DoubleProperty rangeBProperty() {
+
+        if (rangeB == null) {
+
+        }
+
+        // TODO
+
+        return rangeB;
+    }
+
+
+    private List<Pair<DoubleProperty, DoubleProperty>> ranges = new ArrayList<>();
+
+    public List<Pair<DoubleProperty, DoubleProperty>> getRanges() {
+        return ranges;
+    }
+
+    /***************************************************************************
+     *                                                                         *
+     *                    Properties copied from Slider                        *
+     *                                                                         *
+     **************************************************************************/
 
     /**
      * The maximum value represented by this Slider. This must be a
@@ -105,7 +139,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public Object getBean() {
-                    return Slider.this;
+                    return MultiRange.this;
                 }
 
                 @Override
@@ -144,7 +178,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public Object getBean() {
-                    return Slider.this;
+                    return MultiRange.this;
                 }
 
                 @Override
@@ -157,11 +191,64 @@ public class MultiRange extends Control {
     }
 
 
-    /**
-     *
-     */
+    /***************************************************************************
+     *                                                                         *
+     *                         Stylesheet Handling                             *
+     *                                                                         *
+     **************************************************************************/
 
     private static final String DEFAULT_STYLE_CLASS = "multi-range";
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getUserAgentStylesheet() {
+        return MultiRange.class.getResource("multirange.css").toExternalForm();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Skin<?> createDefaultSkin() {
+        return new MultiRangeSkin(this);
+    }
+
+    private static class StyleableProperties {
+
+        private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
+
+        static {
+            final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Control.getClassCssMetaData());
+
+            STYLEABLES = Collections.unmodifiableList(styleables);
+        }
+    }
+
+    /**
+     * @return The CssMetaData associated with this class, which may include the
+     * CssMetaData of its super classes.
+     * @since JavaFX 8.0
+     */
+    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
+        return MultiRange.StyleableProperties.STYLEABLES;
+    }
+
+    /**
+     * RT-19263
+     *
+     * @treatAsPrivate implementation detail
+     * @since JavaFX 8.0
+     * @deprecated This is an experimental API that is not intended for general use and is subject to change in future versions
+     */
+    @Deprecated
+    @Override
+    protected List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
+        return getClassCssMetaData();
+    }
+
+    private static final PseudoClass VERTICAL_PSEUDOCLASS_STATE = PseudoClass.getPseudoClass("vertical");
 
 
 }
