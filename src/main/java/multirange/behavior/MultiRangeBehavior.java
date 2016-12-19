@@ -3,6 +3,7 @@ package multirange.behavior;
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.behavior.KeyBinding;
 import com.sun.javafx.scene.control.behavior.OrientedKeyBinding;
+import com.sun.javafx.util.Utils;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.EventType;
 import javafx.scene.control.Control;
@@ -24,7 +25,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
     /**************************************************************************
      *                          Setup KeyBindings                             *
      *                                                                        *
-     * We manually specify the focus traversal keys because Slider has        *
+     * We manually specify the focus traversal keys because MultiRange has        *
      * different usage for up/down arrow keys.                                *
      *************************************************************************/
 
@@ -70,8 +71,8 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
 
     /**
-     * Invoked by the Slider {@link Skin} implementation whenever a mouse press
-     * occurs on the "track" of the slider. This will cause the thumb to be
+     * Invoked by the MultiRange {@link Skin} implementation whenever a mouse press
+     * occurs on the "track" of the MultiRange. This will cause the thumb to be
      * moved by some amount.
      *
      * @param position The mouse position on track with 0.0 being beginning of
@@ -161,6 +162,37 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         boolean getVertical(Control control) {
             return false;
         }
+    }
+
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *       track and 1.0 being the end
+     */
+    public void thumbPressed(MouseEvent e, double position) {
+        // If not already focused, request focus
+        final MultiRange MultiRange = getControl();
+        if (!MultiRange.isFocused())  MultiRange.requestFocus();
+        MultiRange.setValueChanging(true);
+    }
+
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *        track and 1.0 being the end
+     */
+    public void thumbDragged(MouseEvent e, double position) {
+        final MultiRange MultiRange = getControl();
+        MultiRange.setValue(Utils.clamp(MultiRange.getMin(), (position * (MultiRange.getMax() - MultiRange.getMin())) + MultiRange.getMin(), MultiRange.getMax()));
+    }
+
+    /**
+     * When thumb is released valueChanging should be set to false.
+     */
+    public void thumbReleased(MouseEvent e) {
+        final MultiRange MultiRange = getControl();
+        MultiRange.setValueChanging(false);
+        // RT-15207 When snapToTicks is true, MultiRange value calculated in drag
+        // is then snapped to the nearest tick on mouse release.
+        MultiRange.adjustValue(MultiRange.getValue());
     }
 
 }
