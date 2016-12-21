@@ -1,9 +1,9 @@
-package sample;
+package multirange;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import multirange.MultiRange;
+import multirange.RangeSlider.RangeSlider;
 
 /**
  * Created by alberto on 10/12/2016.
@@ -12,7 +12,7 @@ public class MultiRangeSample extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setScene(new Scene(new MultiRange()));
+        primaryStage.setScene(new Scene(new RangeSlider()));
         primaryStage.show();
     }
 
