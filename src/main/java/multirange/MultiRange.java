@@ -8,6 +8,7 @@ import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
+import multirange.behavior.MultiRangeBehavior;
 import multirange.skin.MultiRangeSkin;
 
 import java.util.ArrayList;
@@ -82,16 +83,14 @@ public class MultiRange extends Control implements MultiRangeAPI {
      */
     @Override
     protected Skin<?> createDefaultSkin() {
-        return new MultiRangeSkin(this);
+        return new MultiRangeSkin(this, new MultiRangeBehavior(this));
     }
 
     private static class StyleableProperties {
         private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
 
         static {
-            final List<CssMetaData<? extends Styleable, ?>> styleables =
-                    new ArrayList<CssMetaData<? extends Styleable, ?>>(Control.getClassCssMetaData());
-
+            final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Control.getClassCssMetaData());
             STYLEABLES = Collections.unmodifiableList(styleables);
         }
     }
