@@ -51,8 +51,7 @@ public class MultiRange extends Control implements MultiRangeAPI {
 
     public ObjectProperty<ObservableList<Range>> rangesProperty() {
         if (ranges == null) {
-            ranges = new SimpleObjectProperty<>(this, "ranges",
-                    FXCollections.observableArrayList());
+            ranges = new SimpleObjectProperty<>(this, "ranges", FXCollections.observableArrayList());
         }
         return ranges;
     }

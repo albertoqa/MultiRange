@@ -42,6 +42,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         // determine the percentage of the way between min and max
         // represented by this mouse event
         final MultiRange multiRange = getControl();
+
         // If not already focused, request focus
         if (!multiRange.isFocused()) {
             multiRange.requestFocus();

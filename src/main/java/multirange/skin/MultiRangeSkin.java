@@ -28,7 +28,15 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         super(control, behavior);
 
         initTrack();
-        //initThumbs();
+        initThumbs();
+    }
+
+    private void initThumbs() {
+        thumbs = new ThumbRange();
+        getChildren().add(thumbs.low);
+
+        thumbs.low.setLayoutX(0);
+        thumbs.low.setLayoutY(0);
     }
 
     private void initTrack() {
@@ -50,8 +58,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     }
 
     private static class ThumbRange {
-        private ThumbPane low;
-        private ThumbPane high;
+        ThumbPane low;
+        ThumbPane high;
 
         public ThumbRange() {
             low = new ThumbPane();
@@ -63,6 +71,9 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     @Override
     protected void layoutChildren(final double x, final double y,
                                   final double w, final double h) {
+
+        thumbs.low.resize(10, 10);
+        thumbs.low.setBackground(new Background(new BackgroundFill(Paint.valueOf("#999888"), null, null)));
 
         // we are assuming the is common radius's for all corners on the track
         double trackRadius = track.getBackground() == null ? 0 : track.getBackground().getFills().size() > 0 ?
