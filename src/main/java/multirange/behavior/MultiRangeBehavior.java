@@ -48,4 +48,44 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             multiRange.requestFocus();
         }
     }
+
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *       track and 1.0 being the end
+     */
+    public void thumbPressed(MouseEvent e, double position) {
+        // If not already focused, request focus
+        final MultiRange multiRange = getControl();
+        if (!multiRange.isFocused())  multiRange.requestFocus();
+        multiRange.setLowValueChanging(true);
+    }
+
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *        track and 1.0 being the end
+     */
+    public void lowThumbDragged(MouseEvent e, double position) {
+        final MultiRange multiRange = getControl();
+        double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
+        multiRange.setLowValue(newValue);
+    }
+
+    /**
+     * When lowThumb is released lowValueChanging should be set to false.
+     */
+    public void lowThumbReleased(MouseEvent e) {
+        final MultiRange multiRange = getControl();
+        multiRange.setLowValueChanging(false);
+    }
+
+    /**
+     * Simple utility function which clamps the given value to be strictly
+     * between the min and max values.
+     */
+    public static double clamp(double min, double value, double max) {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
+
 }

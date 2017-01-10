@@ -1,6 +1,7 @@
 package multirange.skin;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+import javafx.geometry.Point2D;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
@@ -18,6 +19,10 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     private double trackLength;
     private ThumbRange thumbs;
 
+    // temp fields for mouse drag handling
+    private double preDragPos;          // used as a temp value for low and high thumbs
+    private Point2D preDragThumbPoint;  // in skin coordinates
+
     /**
      * Constructor for all BehaviorSkinBase instances.
      *
@@ -33,10 +38,25 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
     private void initThumbs() {
         thumbs = new ThumbRange();
-        getChildren().add(thumbs.low);
+        getChildren().addAll(thumbs.low);
 
+        thumbs.low.setOnMousePressed(me -> {
+            thumbs.high.setFocus(false);
+            thumbs.low.setFocus(true);
+            preDragThumbPoint = thumbs.low.localToParent(me.getX(), me.getY());
+        });
+
+        thumbs.low.setOnMouseDragged(me -> {
+            Point2D cur = thumbs.low.localToParent(me.getX(), me.getY());
+            double dragPos = cur.getX() - preDragThumbPoint.getX();
+        });
+    }
+
+    private void positionThumbs() {
         thumbs.low.setLayoutX(0);
         thumbs.low.setLayoutY(0);
+        thumbs.high.setLayoutX(20);
+        thumbs.high.setLayoutY(20);
     }
 
     private void initTrack() {
@@ -61,10 +81,14 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         ThumbPane low;
         ThumbPane high;
 
-        public ThumbRange() {
+        ThumbRange() {
             low = new ThumbPane();
             low.getStyleClass().setAll("low-thumb");
             low.setFocusTraversable(true);
+
+            high = new ThumbPane();
+            high.getStyleClass().setAll("low-thumb");
+            high.setFocusTraversable(true);
         }
     }
 
