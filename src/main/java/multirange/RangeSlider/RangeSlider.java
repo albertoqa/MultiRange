@@ -181,7 +181,7 @@ public class RangeSlider extends ControlsFXControl {
         
     /** {@inheritDoc} */
     @Override public String getUserAgentStylesheet() {
-        return getUserAgentStylesheet(RangeSlider.class, "rangeslider.css");
+        return getUserAgentStylesheet(RangeSlider.class, "/rangeslider.css");
     }
     
     /**

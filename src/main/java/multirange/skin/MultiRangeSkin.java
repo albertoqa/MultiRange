@@ -2,6 +2,7 @@ package multirange.skin;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.geometry.Point2D;
+import javafx.geometry.Side;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
@@ -34,6 +35,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         initTrack();
         initThumbs();
+
+        registerChangeListener(control.maxProperty(), "VALUE"); //$NON-NLS-1$
     }
 
     private void initThumbs() {
@@ -49,12 +52,22 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         thumbs.low.setOnMouseDragged(me -> {
             Point2D cur = thumbs.low.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
+            getBehavior().thumbDragged(me, dragPos);
         });
     }
 
     private void positionThumbs() {
-        thumbs.low.setLayoutX(0);
-        thumbs.low.setLayoutY(0);
+
+        MultiRange s = getSkinnable();
+        boolean horizontal = isHorizontal();
+        double lx = s.getValue();
+        double ly = 0;
+
+        thumbs.low.setLayoutX(lx);
+        thumbs.low.setLayoutY(ly);
+
+        //thumbs.low.setLayoutX(0);
+        //thumbs.low.setLayoutY(0);
         thumbs.high.setLayoutX(20);
         thumbs.high.setLayoutY(20);
     }
@@ -103,6 +116,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackRadius = track.getBackground() == null ? 0 : track.getBackground().getFills().size() > 0 ?
                 track.getBackground().getFills().get(0).getRadii().getTopLeftHorizontalRadius() : 0;
 
+        positionThumbs();
+
         double tickLineHeight = 0;
         double trackHeight = 50;
         double totalHeightNeeded = trackHeight + tickLineHeight;
@@ -114,6 +129,14 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         // layout track
         track.resizeRelocate(trackStart - trackRadius, trackTop, trackLength + trackRadius + trackRadius, trackHeight);
+    }
+
+    @Override protected void handleControlPropertyChanged(String p) {
+        super.handleControlPropertyChanged(p);
+        if ("VALUE".equals(p)) { //$NON-NLS-1$
+            positionThumbs();
+        }
+        super.handleControlPropertyChanged(p);
     }
 
     @Override

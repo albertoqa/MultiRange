@@ -36,7 +36,10 @@ public class MultiRange extends Control implements MultiRangeAPI {
      * @param max Selector maximum value
      */
     public MultiRange(double min, double max) {
+        setMin(min);
+        setMax(max);
 
+        rangesProperty().get().add(new Range(min, max));
     }
 
     /***************************************************************************
@@ -62,6 +65,16 @@ public class MultiRange extends Control implements MultiRangeAPI {
         this.ranges.set(ranges);
     }
 
+    public void setRangeValue(double newValue) {
+        //rangesProperty().get().get(0).setLow(newValue);
+        maxProperty().set(newValue);
+    }
+
+    public double getValue() {
+        //return rangesProperty().get().get(0).getLow();
+        return maxProperty().get();
+    }
+
 
     private DoubleProperty max;
 
@@ -80,7 +93,6 @@ public class MultiRange extends Control implements MultiRangeAPI {
                     if (get() < getMin()) {
                         setMin(get());
                     }
-                    adjustValues();
                 }
 
                 @Override public Object getBean() {
@@ -113,7 +125,6 @@ public class MultiRange extends Control implements MultiRangeAPI {
                     if (get() > getMax()) {
                         setMax(get());
                     }
-                    adjustValues();
                 }
 
                 @Override public Object getBean() {
