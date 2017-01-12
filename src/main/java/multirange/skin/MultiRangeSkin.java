@@ -2,7 +2,6 @@ package multirange.skin;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.geometry.Point2D;
-import javafx.geometry.Side;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
@@ -36,7 +35,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         initTrack();
         initThumbs();
 
-        registerChangeListener(control.maxProperty(), "VALUE"); //$NON-NLS-1$
+        registerChangeListener(control.rangesProperty(), "VALUE"); //$NON-NLS-1$
     }
 
     private void initThumbs() {
@@ -52,15 +51,15 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         thumbs.low.setOnMouseDragged(me -> {
             Point2D cur = thumbs.low.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
-            getBehavior().thumbDragged(me, dragPos);
+            getBehavior().thumbDragged(me, dragPos, 1);
         });
     }
 
-    private void positionThumbs() {
+    private void positionLowThumb() {
 
         MultiRange s = getSkinnable();
         boolean horizontal = isHorizontal();
-        double lx = s.getValue();
+        double lx = s.getLowValue();
         double ly = 0;
 
         thumbs.low.setLayoutX(lx);
@@ -116,7 +115,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackRadius = track.getBackground() == null ? 0 : track.getBackground().getFills().size() > 0 ?
                 track.getBackground().getFills().get(0).getRadii().getTopLeftHorizontalRadius() : 0;
 
-        positionThumbs();
+        positionLowThumb();
 
         double tickLineHeight = 0;
         double trackHeight = 50;
@@ -134,7 +133,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     @Override protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
         if ("VALUE".equals(p)) { //$NON-NLS-1$
-            positionThumbs();
+            positionLowThumb();
         }
         super.handleControlPropertyChanged(p);
     }

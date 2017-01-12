@@ -53,10 +53,10 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      * @param position The mouse position on track with 0.0 being beginning of
      *        track and 1.0 being the end
      */
-    public void thumbDragged(MouseEvent e, double position) {
+    public void thumbDragged(MouseEvent e, double position, int id) {
         final MultiRange multiRange = getControl();
         double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-        multiRange.setRangeValue(newValue);
+        multiRange.setLowRangeValue(id, newValue);
     }
 
     /**

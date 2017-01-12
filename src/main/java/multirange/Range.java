@@ -8,12 +8,22 @@ import javafx.beans.property.SimpleDoubleProperty;
  */
 public class Range {
 
+    private int id;
     private DoubleProperty low;
     private DoubleProperty high;
 
-    public Range(Double low, Double high) {
+    Range(int id, Double low, Double high) {
+        this.id = id;
         this.low = new SimpleDoubleProperty(low);
         this.high = new SimpleDoubleProperty(high);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public double getLow() {

@@ -1,9 +1,6 @@
 package multirange;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.DoublePropertyBase;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
@@ -16,6 +13,7 @@ import multirange.skin.MultiRangeSkin;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by alberto on 09/01/2017.
@@ -39,7 +37,7 @@ public class MultiRange extends Control implements MultiRangeAPI {
         setMin(min);
         setMax(max);
 
-        rangesProperty().get().add(new Range(min, max));
+        rangesProperty().get().add(new Range(1, min, max));
     }
 
     /***************************************************************************
@@ -48,15 +46,15 @@ public class MultiRange extends Control implements MultiRangeAPI {
      *                                                                         *
      **************************************************************************/
 
-    private ObjectProperty<ObservableList<Range>> ranges;
+    private ListProperty<Range> ranges;
 
     public ObservableList<Range> getRanges() {
         return ranges.get();
     }
 
-    public ObjectProperty<ObservableList<Range>> rangesProperty() {
+    public ListProperty<Range> rangesProperty() {
         if (ranges == null) {
-            ranges = new SimpleObjectProperty<>(this, "ranges", FXCollections.observableArrayList());
+            ranges = new SimpleListProperty<>(this, "ranges", FXCollections.observableArrayList());
         }
         return ranges;
     }
@@ -65,16 +63,29 @@ public class MultiRange extends Control implements MultiRangeAPI {
         this.ranges.set(ranges);
     }
 
-    public void setRangeValue(double newValue) {
-        //rangesProperty().get().get(0).setLow(newValue);
-        maxProperty().set(newValue);
+    private int lastId = 1;
+
+    public void setLowRangeValue(int id, double newValue) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
+        if (rangeOptional.isPresent()) {
+            Range range = rangeOptional.get();
+            int index = ranges.indexOf(range);
+            range.setLow(newValue);
+
+            // need to remove and insert to notify of a change in an element of the list
+            ranges.set(index, null);
+            ranges.set(index, range);
+        }
+        lastId = id;
     }
 
-    public double getValue() {
-        //return rangesProperty().get().get(0).getLow();
-        return maxProperty().get();
+    public double getLowValue() {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == lastId).findAny();
+        if (rangeOptional.isPresent()) {
+            return rangeOptional.get().getLow();
+        }
+        return -1;
     }
-
 
     private DoubleProperty max;
 
@@ -89,17 +100,20 @@ public class MultiRange extends Control implements MultiRangeAPI {
     public final DoubleProperty maxProperty() {
         if (max == null) {
             max = new DoublePropertyBase(100) {
-                @Override protected void invalidated() {
+                @Override
+                protected void invalidated() {
                     if (get() < getMin()) {
                         setMin(get());
                     }
                 }
 
-                @Override public Object getBean() {
+                @Override
+                public Object getBean() {
                     return MultiRange.this;
                 }
 
-                @Override public String getName() {
+                @Override
+                public String getName() {
                     return "max";
                 }
             };
@@ -121,17 +135,20 @@ public class MultiRange extends Control implements MultiRangeAPI {
     public final DoubleProperty minProperty() {
         if (min == null) {
             min = new DoublePropertyBase(0) {
-                @Override protected void invalidated() {
+                @Override
+                protected void invalidated() {
                     if (get() > getMax()) {
                         setMax(get());
                     }
                 }
 
-                @Override public Object getBean() {
+                @Override
+                public Object getBean() {
                     return MultiRange.this;
                 }
 
-                @Override public String getName() {
+                @Override
+                public String getName() {
                     return "min";
                 }
             };
