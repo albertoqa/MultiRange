@@ -34,6 +34,9 @@ public class MultiRange extends Control implements MultiRangeAPI {
      * @param max Selector maximum value
      */
     public MultiRange(double min, double max) {
+        // TODO this is why I get an error on launch...
+        getStyleClass().setAll(DEFAULT_STYLE_CLASS);
+
         setMin(min);
         setMax(max);
 
