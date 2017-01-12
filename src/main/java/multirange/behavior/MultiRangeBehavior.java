@@ -51,7 +51,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
     /**
      * @param position The mouse position on track with 0.0 being beginning of
-     *        track and 1.0 being the end
+     *                 track and 1.0 being the end
      */
     public void thumbDragged(MouseEvent e, double position, int id) {
         final MultiRange multiRange = getControl();
