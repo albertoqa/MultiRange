@@ -68,12 +68,15 @@ public class MultiRange extends Control implements MultiRangeAPI {
 
     private int lastId = 1;
 
-    public void setLowRangeValue(int id, double newValue) {
+
+    private void setValue(int id, double newValue, boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
         if (rangeOptional.isPresent()) {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
-            range.setLow(newValue);
+
+            if(isLow) range.setLow(newValue);
+            else range.setHigh(newValue);
 
             // need to remove and insert to notify of a change in an element of the list
             ranges.set(index, null);
@@ -82,12 +85,29 @@ public class MultiRange extends Control implements MultiRangeAPI {
         lastId = id;
     }
 
-    public double getLowValue() {
+    private double getValue(boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == lastId).findAny();
         if (rangeOptional.isPresent()) {
-            return rangeOptional.get().getLow();
+            if(isLow) return rangeOptional.get().getLow();
+            else return rangeOptional.get().getHigh();
         }
         return -1;
+    }
+
+    public void setLowRangeValue(int id, double newValue) {
+        setValue(id, newValue, true);
+    }
+
+    public double getLowValue() {
+        return getValue(true);
+    }
+
+    public void setHighRangeValue(int id, double newValue) {
+        setValue(id, newValue, false);
+    }
+
+    public double getHighValue() {
+        return getValue(false);
     }
 
     private DoubleProperty max;

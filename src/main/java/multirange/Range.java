@@ -9,13 +9,13 @@ import javafx.beans.property.SimpleDoubleProperty;
 public class Range {
 
     private int id;
-    private DoubleProperty low;
-    private DoubleProperty high;
+    private Double low;
+    private Double high;
 
     Range(int id, Double low, Double high) {
         this.id = id;
-        this.low = new SimpleDoubleProperty(low);
-        this.high = new SimpleDoubleProperty(high);
+        this.low = low;
+        this.high = high;
     }
 
     public int getId() {
@@ -26,27 +26,19 @@ public class Range {
         this.id = id;
     }
 
-    public double getLow() {
-        return low.get();
-    }
-
-    public DoubleProperty lowProperty() {
+    public Double getLow() {
         return low;
     }
 
-    public void setLow(double low) {
-        this.low.set(low);
+    public void setLow(Double low) {
+        this.low = low;
     }
 
-    public double getHigh() {
-        return high.get();
-    }
-
-    public DoubleProperty highProperty() {
+    public Double getHigh() {
         return high;
     }
 
-    public void setHigh(double high) {
-        this.high.set(high);
+    public void setHigh(Double high) {
+        this.high = high;
     }
 }
