@@ -40,7 +40,7 @@ public class MultiRange extends Control implements MultiRangeAPI {
         setMin(min);
         setMax(max);
 
-        rangesProperty().get().add(new Range(1, min, max));
+        rangesProperty().get().add(new Range(0, min, max));
     }
 
     /***************************************************************************
@@ -66,8 +66,13 @@ public class MultiRange extends Control implements MultiRangeAPI {
         this.ranges.set(ranges);
     }
 
-    private int lastId = 1;
+    public void createNewRange(int id, double low, double high) {
+        ranges.add(new Range(id, low, high));
+        setValue(id, low, true);
+        setValue(id, high, false);
+    }
 
+    private int lastId = 0;
 
     private void setValue(int id, double newValue, boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
