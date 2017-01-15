@@ -40,7 +40,7 @@ public class MultiRange extends Control {
         setMin(min);
         setMax(max);
 
-        rangesProperty().get().add(new Range(0, min, max));
+        ranges.add(new Range(0, min, max));
     }
 
     /***************************************************************************
@@ -49,30 +49,21 @@ public class MultiRange extends Control {
      *                                                                         *
      **************************************************************************/
 
-    private ListProperty<Range> ranges;
+    private List<Range> ranges = new ArrayList<>();
+    private int lastId = 0;
+    private BooleanProperty valueChanging;
 
-    public ObservableList<Range> getRanges() {
-        return ranges.get();
-    }
-
-    public ListProperty<Range> rangesProperty() {
-        if (ranges == null) {
-            ranges = new SimpleListProperty<>(this, "ranges", FXCollections.observableArrayList());
-        }
-        return ranges;
-    }
-
-    public void setRanges(ObservableList<Range> ranges) {
-        this.ranges.set(ranges);
-    }
-
+    /**
+     * Create a new range
+     * @param id
+     * @param low
+     * @param high
+     */
     public void createNewRange(int id, double low, double high) {
         ranges.add(new Range(id, low, high));
-        setValue(id, low, true);
-        setValue(id, high, false);
+        valueChangingProperty().setValue(true);
+        lastId = id;
     }
-
-    private int lastId = 0;
 
     private void setValue(int id, double newValue, boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
@@ -91,21 +82,11 @@ public class MultiRange extends Control {
         lastId = id;
     }
 
-    private BooleanProperty valueChanging;
-
-    public boolean isValueChanging() {
-        return valueChanging.get();
-    }
-
     public BooleanProperty valueChangingProperty() {
         if(valueChanging == null) {
             valueChanging = new SimpleBooleanProperty(false);
         }
         return valueChanging;
-    }
-
-    public void setValueChanging(boolean valueChanging) {
-        this.valueChanging.set(valueChanging);
     }
 
     private double getValue(boolean isLow) {
@@ -130,9 +111,11 @@ public class MultiRange extends Control {
         setValue(id, newValue, false);
     }
 
-    public double getHighValue() {
+    public double getHighValue(int id) {
+        lastId = id;
         return getValue(false);
     }
+
 
     private DoubleProperty max;
 

@@ -74,7 +74,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         t.high.setOnMousePressed(me -> {
             t.high.setFocus(true);
             preDragThumbPoint = t.high.localToParent(me.getX(), me.getY());
-            preDragPos = (getSkinnable().getHighValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
+            preDragPos = (getSkinnable().getHighValue(index) - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
 
         t.high.setOnMouseDragged(me -> {
@@ -113,7 +113,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackLength = track.getWidth();
 
         trackLength -= 2;
-        double lx = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+        double lx = trackStart + (trackLength * ((s.getHighValue(currentId) - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
         double ly = getCurrentThumb().low.getLayoutY();
 
         ThumbPane high = getCurrentThumb().high;
