@@ -84,10 +84,28 @@ public class MultiRange extends Control {
             else range.setHigh(newValue);
 
             // need to remove and insert to notify of a change in an element of the list
-            ranges.set(index, null);
+            //ranges.set(index, null);
             ranges.set(index, range);
+            valueChangingProperty().setValue(true);
         }
         lastId = id;
+    }
+
+    private BooleanProperty valueChanging;
+
+    public boolean isValueChanging() {
+        return valueChanging.get();
+    }
+
+    public BooleanProperty valueChangingProperty() {
+        if(valueChanging == null) {
+            valueChanging = new SimpleBooleanProperty(false);
+        }
+        return valueChanging;
+    }
+
+    public void setValueChanging(boolean valueChanging) {
+        this.valueChanging.set(valueChanging);
     }
 
     private double getValue(boolean isLow) {
@@ -103,7 +121,8 @@ public class MultiRange extends Control {
         setValue(id, newValue, true);
     }
 
-    public double getLowValue() {
+    public double getLowValue(int id) {
+        lastId = id;
         return getValue(true);
     }
 

@@ -52,12 +52,14 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
     public void lowThumbDragged(MouseEvent e, double position, int id) {
         final MultiRange multiRange = getControl();
         double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
+        System.out.println("Id: " + id + "     New value: " + newValue + "     Low");
         multiRange.setLowRangeValue(id, newValue);
     }
 
     public void highThumbDragged(MouseEvent e, double position, int id) {
         final MultiRange multiRange = getControl();
         double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
+        System.out.println("Id: " + id + "     New value: " + newValue + "     High");
         multiRange.setHighRangeValue(id, newValue);
     }
 

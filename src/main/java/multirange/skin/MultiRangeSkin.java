@@ -44,7 +44,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         initTrack();
         initInitialThumbs();
 
-        registerChangeListener(control.rangesProperty(), "ranges"); //$NON-NLS-1$
+        registerChangeListener(control.valueChangingProperty(), "ranges"); //$NON-NLS-1$
     }
 
     private void initInitialThumbs() {
@@ -61,7 +61,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         t.low.setOnMousePressed(me -> {
             t.low.setFocus(true);
             preDragThumbPoint = t.low.localToParent(me.getX(), me.getY());
-            preDragPos = (getSkinnable().getLowValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
+            preDragPos = (getSkinnable().getLowValue(index) - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
 
         t.low.setOnMouseDragged(me -> {
@@ -92,7 +92,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     private void positionLowThumb() {
         MultiRange s = getSkinnable();
         boolean horizontal = isHorizontal();
-        double lx = trackStart + (((trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero()))) - thumbWidth / 2));
+        double lx = trackStart + (((trackLength * ((s.getLowValue(currentId) - s.getMin()) / (getMaxMinusMinNoZero()))) - thumbWidth / 2));
         double ly = lowThumbPos;
 
         ThumbPane low = getCurrentThumb().low;
@@ -205,6 +205,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         // layout track
         track.resizeRelocate(trackStart - trackRadius, trackTop, trackLength + trackRadius + trackRadius, trackHeight);
+
     }
 
     @Override
@@ -213,6 +214,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         if ("ranges".equals(p)) { //$NON-NLS-1$
             positionLowThumb();
             positionHighThumb();
+            getSkinnable().valueChangingProperty().setValue(false);
         }
         super.handleControlPropertyChanged(p);
     }
