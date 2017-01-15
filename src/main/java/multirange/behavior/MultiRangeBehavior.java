@@ -49,25 +49,23 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         }
     }
 
-    public void lowThumbDragged(MouseEvent e, double position, int id) {
+    public void lowThumbDragged(MouseEvent e, double position) {
         final MultiRange multiRange = getControl();
         double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-        System.out.println("Id: " + id + "     New value: " + newValue + "     Low");
-        multiRange.setLowRangeValue(id, newValue);
+        multiRange.setLowRangeValue(newValue);
     }
 
-    public void highThumbDragged(MouseEvent e, double position, int id) {
+    public void highThumbDragged(MouseEvent e, double position) {
         final MultiRange multiRange = getControl();
         double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-        System.out.println("Id: " + id + "     New value: " + newValue + "     High");
-        multiRange.setHighRangeValue(id, newValue);
+        multiRange.setHighRangeValue(newValue);
     }
 
     /**
      * Simple utility function which clamps the given value to be strictly
      * between the min and max values.
      */
-    public static double clamp(double min, double value, double max) {
+    private static double clamp(double min, double value, double max) {
         if (value < min) return min;
         if (value > max) return max;
         return value;

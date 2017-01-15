@@ -1,8 +1,6 @@
 package multirange;
 
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.scene.control.Control;
@@ -50,23 +48,33 @@ public class MultiRange extends Control {
      **************************************************************************/
 
     private List<Range> ranges = new ArrayList<>();
-    private int lastId = 0;
+    private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);
     private BooleanProperty valueChanging;
+
+    public int getCurrentRangeId() {
+        return currentRangeId.get();
+    }
+
+    public IntegerProperty currentRangeIdProperty() {
+        return currentRangeId;
+    }
+
+    public void setCurrentRangeId(int currentRangeId) {
+        this.currentRangeId.set(currentRangeId);
+    }
 
     /**
      * Create a new range
-     * @param id
      * @param low
      * @param high
      */
-    public void createNewRange(int id, double low, double high) {
-        ranges.add(new Range(id, low, high));
+    public void createNewRange(double low, double high) {
+        ranges.add(new Range(currentRangeId.get(), low, high));
         valueChangingProperty().setValue(true);
-        lastId = id;
     }
 
-    private void setValue(int id, double newValue, boolean isLow) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
+    private void setValue(double newValue, boolean isLow) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
@@ -79,7 +87,6 @@ public class MultiRange extends Control {
             ranges.set(index, range);
             valueChangingProperty().setValue(true);
         }
-        lastId = id;
     }
 
     public BooleanProperty valueChangingProperty() {
@@ -90,7 +97,7 @@ public class MultiRange extends Control {
     }
 
     private double getValue(boolean isLow) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == lastId).findAny();
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
             if(isLow) return rangeOptional.get().getLow();
             else return rangeOptional.get().getHigh();
@@ -98,21 +105,19 @@ public class MultiRange extends Control {
         return -1;
     }
 
-    public void setLowRangeValue(int id, double newValue) {
-        setValue(id, newValue, true);
+    public void setLowRangeValue(double newValue) {
+        setValue(newValue, true);
     }
 
-    public double getLowValue(int id) {
-        lastId = id;
+    public double getLowValue() {
         return getValue(true);
     }
 
-    public void setHighRangeValue(int id, double newValue) {
-        setValue(id, newValue, false);
+    public void setHighRangeValue(double newValue) {
+        setValue(newValue, false);
     }
 
-    public double getHighValue(int id) {
-        lastId = id;
+    public double getHighValue() {
         return getValue(false);
     }
 

@@ -1,6 +1,8 @@
 package multirange.skin;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Point2D;
 import javafx.scene.layout.StackPane;
 import multirange.MultiRange;
@@ -28,8 +30,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     private double preDragPos;          // used as a temp value for low and high thumbsRange
     private Point2D preDragThumbPoint;  // in skin coordinates
 
-    private int currentId = 0;
-
+    private IntegerProperty currentId = new SimpleIntegerProperty(0);
     private int id = 0;
 
     /**
@@ -45,6 +46,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         initInitialThumbs();
 
         registerChangeListener(control.valueChangingProperty(), "ranges"); //$NON-NLS-1$
+
+        getSkinnable().currentRangeIdProperty().bind(currentId);
     }
 
     private void initInitialThumbs() {
@@ -60,39 +63,38 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         t.low.setOnMousePressed(me -> {
             t.low.setFocus(true);
+            currentId.setValue(index);
             preDragThumbPoint = t.low.localToParent(me.getX(), me.getY());
-            preDragPos = (getSkinnable().getLowValue(index) - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
+            preDragPos = (getSkinnable().getLowValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
 
         t.low.setOnMouseDragged(me -> {
             Point2D cur = t.low.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
-            currentId = index;
-            getBehavior().lowThumbDragged(me, preDragPos + dragPos / trackLength, index);
+            getBehavior().lowThumbDragged(me, preDragPos + dragPos / trackLength);
         });
 
         t.high.setOnMousePressed(me -> {
             t.high.setFocus(true);
+            currentId.setValue(index);
             preDragThumbPoint = t.high.localToParent(me.getX(), me.getY());
-            preDragPos = (getSkinnable().getHighValue(index) - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
+            preDragPos = (getSkinnable().getHighValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
 
         t.high.setOnMouseDragged(me -> {
             Point2D cur = t.high.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
-            currentId = index;
-            getBehavior().highThumbDragged(me, preDragPos + dragPos / trackLength, index);
+            getBehavior().highThumbDragged(me, preDragPos + dragPos / trackLength);
         });
     }
 
     private ThumbRange getCurrentThumb() {
-        return thumbs.get(currentId);
+        return thumbs.get(currentId.get());
     }
 
     private void positionLowThumb() {
         MultiRange s = getSkinnable();
-        boolean horizontal = isHorizontal();
-        double lx = trackStart + (((trackLength * ((s.getLowValue(currentId) - s.getMin()) / (getMaxMinusMinNoZero()))) - thumbWidth / 2));
+        double lx = trackStart + (((trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero()))) - thumbWidth / 2));
         double ly = lowThumbPos;
 
         ThumbPane low = getCurrentThumb().low;
@@ -103,7 +105,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
     private void positionHighThumb() {
         MultiRange s = getSkinnable();
-        boolean horizontal = isHorizontal();
 
         double thumbWidth = getCurrentThumb().low.getWidth();
         double thumbHeight = getCurrentThumb().low.getHeight();
@@ -113,7 +114,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackLength = track.getWidth();
 
         trackLength -= 2;
-        double lx = trackStart + (trackLength * ((s.getHighValue(currentId) - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+        double lx = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
         double ly = getCurrentThumb().low.getLayoutY();
 
         ThumbPane high = getCurrentThumb().high;
@@ -133,14 +134,18 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         track.setOnMousePressed(me -> {
             getBehavior().trackPress(me, (me.getX() / trackLength));
             int index = getNextId();
-            currentId = index;
+            currentId.setValue(index);
             initThumbs(new ThumbRange(), index);
-            getSkinnable().createNewRange(index, 0.5, 1);
+            getSkinnable().createNewRange(0.5, 1);
         });
     }
 
     private int getNextId() {
         return id++;
+    }
+
+    public void t() {
+
     }
 
 
