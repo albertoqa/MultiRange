@@ -3,7 +3,10 @@ package multirange.skin;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
+import javafx.geometry.Side;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.layout.StackPane;
 import multirange.MultiRange;
 import multirange.behavior.MultiRangeBehavior;
@@ -16,8 +19,17 @@ import java.util.List;
  */
 public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehavior> {
 
+    /**
+     * Track if slider is vertical/horizontal and cause re layout
+     */
+    private NumberAxis tickLine = null;
+    private double trackToTickGap = 2;
+
+    private boolean showTickMarks;
     private double thumbWidth;
     private double thumbHeight;
+
+    private Orientation orientation;
 
     private StackPane track;
     private double trackStart;
@@ -42,10 +54,19 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     public MultiRangeSkin(final MultiRange control, final MultiRangeBehavior behavior) {
         super(control, behavior);
 
+        orientation = getSkinnable().getOrientation();
+
         initTrack();
         initInitialThumbs();
 
-        registerChangeListener(control.valueChangingProperty(), "ranges"); //$NON-NLS-1$
+        registerChangeListener(control.valueChangingProperty(), "RANGES");
+        registerChangeListener(control.orientationProperty(), "ORIENTATION");
+        registerChangeListener(control.showTickMarksProperty(), "SHOW_TICK_MARKS");
+        registerChangeListener(control.showTickLabelsProperty(), "SHOW_TICK_LABELS");
+        registerChangeListener(control.majorTickUnitProperty(), "MAJOR_TICK_UNIT");
+        registerChangeListener(control.minorTickCountProperty(), "MINOR_TICK_COUNT");
+        registerChangeListener(control.minProperty(), "MIN");
+        registerChangeListener(control.maxProperty(), "MAX");
 
         getSkinnable().currentRangeIdProperty().bind(currentId);
     }
@@ -54,6 +75,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         thumbs = new ArrayList<>();
         ThumbRange initialThumbs = new ThumbRange();
         initThumbs(initialThumbs, getNextId());
+
+        setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
     }
 
     private void initThumbs(ThumbRange t, int index) {
@@ -132,7 +155,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         getChildren().add(track);
 
         track.setOnMousePressed(me -> {
-            getBehavior().trackPress(me, (me.getX() / trackLength));
+            if (isHorizontal()) {
+                getBehavior().trackPress(me, (me.getX() / trackLength));
+            } else {
+                getBehavior().trackPress(me, (me.getY() / trackLength));
+            }
+            
             int index = getNextId();
             currentId.setValue(index);
             initThumbs(new ThumbRange(), index);
@@ -210,7 +238,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     @Override
     protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
-        if ("ranges".equals(p)) { //$NON-NLS-1$
+        if ("RANGES".equals(p)) {
             positionLowThumb();
             positionHighThumb();
             getSkinnable().valueChangingProperty().setValue(false);
@@ -257,4 +285,48 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         return true;
     }
 
+    /**
+     * When ticks or labels are changing of visibility, we compute the new
+     * visibility and add the necessary objets. After this method, we must be
+     * sure to add the high Thumb and the rangeBar.
+     *
+     * @param ticksVisible
+     * @param labelsVisible
+     */
+    private void setShowTickMarks(boolean ticksVisible, boolean labelsVisible) {
+        showTickMarks = (ticksVisible || labelsVisible);
+        MultiRange multiRange = getSkinnable();
+        if (showTickMarks) {
+            if (tickLine == null) {
+                tickLine = new NumberAxis();
+                tickLine.tickLabelFormatterProperty().bind(getSkinnable().labelFormatterProperty());
+                tickLine.setAnimated(false);
+                tickLine.setAutoRanging(false);
+                tickLine.setSide(isHorizontal() ? Side.BOTTOM : Side.RIGHT);
+                tickLine.setUpperBound(multiRange.getMax());
+                tickLine.setLowerBound(multiRange.getMin());
+                tickLine.setTickUnit(multiRange.getMajorTickUnit());
+                tickLine.setTickMarkVisible(ticksVisible);
+                tickLine.setTickLabelsVisible(labelsVisible);
+                tickLine.setMinorTickVisible(ticksVisible);
+                // add 1 to the slider minor tick count since the axis draws one
+                // less minor ticks than the number given.
+                tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(),0) + 1);
+                getChildren().clear();
+                getChildren().addAll(tickLine, track, lowThumb);
+            } else {
+                tickLine.setTickLabelsVisible(labelsVisible);
+                tickLine.setTickMarkVisible(ticksVisible);
+                tickLine.setMinorTickVisible(ticksVisible);
+            }
+        }
+        else  {
+            getChildren().clear();
+            getChildren().addAll(track, lowThumb);
+//            tickLine = null;
+        }
+
+        getSkinnable().requestLayout();
+    }
+    
 }

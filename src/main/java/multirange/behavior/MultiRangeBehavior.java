@@ -2,9 +2,12 @@ package multirange.behavior;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.behavior.KeyBinding;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Skin;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Callback;
 import multirange.MultiRange;
+import multirange.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +50,20 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         if (!multiRange.isFocused()) {
             multiRange.requestFocus();
         }
+
+        double newPosition;
+        if (multiRange.getOrientation().equals(Orientation.HORIZONTAL)) {
+            newPosition = position * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
+        } else {
+            newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
+        }
+
     }
 
     public void lowThumbPressed() {
         // If not already focused, request focus
         final MultiRange multiRange = getControl();
-        if (!multiRange.isFocused())  multiRange.requestFocus();
+        if (!multiRange.isFocused()) multiRange.requestFocus();
         multiRange.setValueChanging(true);
     }
 
@@ -72,24 +83,13 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 //            multiRange.setLowValue(snapValueToTicks(multiRange.getLowValue()));
 //        }
 //    }
-
     public void highThumbDragged(MouseEvent e, double position) {
         getControl().setHighRangeValue(getNewPosition(position));
     }
 
     private double getNewPosition(double position) {
         final MultiRange multiRange = getControl();
-        return clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-    }
-
-    /**
-     * Simple utility function which clamps the given value to be strictly
-     * between the min and max values.
-     */
-    private static double clamp(double min, double value, double max) {
-        if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        return Utils.clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
     }
 
 }
