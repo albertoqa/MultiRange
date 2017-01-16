@@ -19,7 +19,8 @@ import java.util.Optional;
 public class MultiRange extends Control {
 
     /**
-     * Creates a default (horizontal) multiRange instance.
+     * Creates a default (horizontal) multiRange instance using default values of 0.0,
+     * 1.0 for min/max respectively.
      */
     public MultiRange() {
         this(0, 1.0);
@@ -28,17 +29,23 @@ public class MultiRange extends Control {
     /**
      * Instantiates a default (horizontal) multiRange with the specified min/max values.
      *
-     * @param min Selector minimum value
-     * @param max Selector maximum value
+     * @param min The minimum allowable value that the MultiRange will allow
+     * @param max The maximum allowable value that the MultiRange will allow
      */
     public MultiRange(double min, double max) {
-        // TODO this is why I get an error on launch...
         getStyleClass().setAll(DEFAULT_STYLE_CLASS);
 
         setMin(min);
         setMax(max);
 
-        ranges.add(new Range(0, min, max));
+        // TODO
+        //adjustValues();
+        //setLowValue(lowValue);
+        //setHighValue(highValue);
+
+        // Add the first range to the slider with the values min/max for the
+        // lower/higher values respectively.
+        ranges.add(new Range(currentRangeId.get(), min, max));
     }
 
     /***************************************************************************
@@ -65,6 +72,7 @@ public class MultiRange extends Control {
 
     /**
      * Create a new range
+     *
      * @param low
      * @param high
      */
@@ -79,7 +87,7 @@ public class MultiRange extends Control {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
 
-            if(isLow) range.setLow(newValue);
+            if (isLow) range.setLow(newValue);
             else range.setHigh(newValue);
 
             // need to remove and insert to notify of a change in an element of the list
@@ -90,16 +98,20 @@ public class MultiRange extends Control {
     }
 
     public BooleanProperty valueChangingProperty() {
-        if(valueChanging == null) {
+        if (valueChanging == null) {
             valueChanging = new SimpleBooleanProperty(false);
         }
         return valueChanging;
     }
 
+    public void setValueChanging(boolean valueChanging) {
+        this.valueChanging.set(valueChanging);
+    }
+
     private double getValue(boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
-            if(isLow) return rangeOptional.get().getLow();
+            if (isLow) return rangeOptional.get().getLow();
             else return rangeOptional.get().getHigh();
         }
         return -1;

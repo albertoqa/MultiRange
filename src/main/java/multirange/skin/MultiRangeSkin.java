@@ -71,7 +71,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         t.low.setOnMouseDragged(me -> {
             Point2D cur = t.low.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
-            getBehavior().lowThumbDragged(me, preDragPos + dragPos / trackLength);
+            getBehavior().lowThumbDragged(preDragPos + dragPos / trackLength);
         });
 
         t.high.setOnMousePressed(me -> {
@@ -144,11 +144,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         return id++;
     }
 
-    public void t() {
-
-    }
-
-
     private static class ThumbPane extends StackPane {
         public void setFocus(boolean value) {
             setFocused(value);
@@ -210,7 +205,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         // layout track
         track.resizeRelocate(trackStart - trackRadius, trackTop, trackLength + trackRadius + trackRadius, trackHeight);
-
     }
 
     @Override
@@ -240,16 +234,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
     @Override
     protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-
         return 140;
-
     }
 
     @Override
     protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return getSkinnable().getInsets().getTop() + Math.max(getCurrentThumb().low.prefHeight(-1), track.prefHeight(-1)) +
-                (0) + bottomInset;
-
+        return getSkinnable().getInsets().getTop() + Math.max(getCurrentThumb().low.prefHeight(-1), track.prefHeight(-1)) + (0) + bottomInset;
     }
 
     @Override
@@ -261,7 +251,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     @Override
     protected double computeMaxHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
         return getSkinnable().prefHeight(width);
-
     }
 
     private boolean isHorizontal() {

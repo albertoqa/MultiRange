@@ -49,16 +49,37 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         }
     }
 
-    public void lowThumbDragged(MouseEvent e, double position) {
+    public void lowThumbPressed() {
+        // If not already focused, request focus
         final MultiRange multiRange = getControl();
-        double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-        multiRange.setLowRangeValue(newValue);
+        if (!multiRange.isFocused())  multiRange.requestFocus();
+        multiRange.setValueChanging(true);
     }
 
+    public void lowThumbDragged(double position) {
+        getControl().setLowRangeValue(getNewPosition(position));
+    }
+
+    /**
+     * When lowThumb is released lowValueChanging should be set to false.
+     */
+//    public void lowThumbReleased(MouseEvent e) {
+//        final MultiRange multiRange = getControl();
+//        multiRange.setValueChanging(false);
+//        // RT-15207 When snapToTicks is true, slider value calculated in drag
+//        // is then snapped to the nearest tick on mouse release.
+//        if (multiRange.isSnapToTicks()) {
+//            multiRange.setLowValue(snapValueToTicks(multiRange.getLowValue()));
+//        }
+//    }
+
     public void highThumbDragged(MouseEvent e, double position) {
+        getControl().setHighRangeValue(getNewPosition(position));
+    }
+
+    private double getNewPosition(double position) {
         final MultiRange multiRange = getControl();
-        double newValue = clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
-        multiRange.setHighRangeValue(newValue);
+        return clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
     }
 
     /**
