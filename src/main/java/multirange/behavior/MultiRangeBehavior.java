@@ -5,7 +5,6 @@ import com.sun.javafx.scene.control.behavior.KeyBinding;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Skin;
 import javafx.scene.input.MouseEvent;
-import javafx.util.Callback;
 import multirange.MultiRange;
 import multirange.Utils;
 

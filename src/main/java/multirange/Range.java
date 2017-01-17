@@ -1,8 +1,5 @@
 package multirange;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-
 /**
  * Created by alberto on 09/01/2017.
  */

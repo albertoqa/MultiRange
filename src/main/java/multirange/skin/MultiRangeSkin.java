@@ -160,7 +160,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             } else {
                 getBehavior().trackPress(me, (me.getY() / trackLength));
             }
-            
+
             int index = getNextId();
             currentId.setValue(index);
             initThumbs(new ThumbRange(), index);
@@ -311,7 +311,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 tickLine.setMinorTickVisible(ticksVisible);
                 // add 1 to the slider minor tick count since the axis draws one
                 // less minor ticks than the number given.
-                tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(),0) + 1);
+                tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(), 0) + 1);
                 getChildren().clear();
                 getChildren().addAll(tickLine, track, lowThumb);
             } else {
@@ -319,8 +319,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 tickLine.setTickMarkVisible(ticksVisible);
                 tickLine.setMinorTickVisible(ticksVisible);
             }
-        }
-        else  {
+        } else {
             getChildren().clear();
             getChildren().addAll(track, lowThumb);
 //            tickLine = null;
@@ -328,5 +327,5 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         getSkinnable().requestLayout();
     }
-    
+
 }

@@ -6,7 +6,4 @@ package multirange;
 public interface MultiRangeAPI {
 
 
-
-
-
 }

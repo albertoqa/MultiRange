@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import multirange.MultiRange;
-import multirange.RangeSlider.RangeSlider;
 
 /**
  * Created by alberto on 10/12/2016.
