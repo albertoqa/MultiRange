@@ -38,4 +38,8 @@ public class Range {
     public void setHigh(Double high) {
         this.high = high;
     }
+
+    public double getAmplitude() {
+        return high-low;
+    }
 }
