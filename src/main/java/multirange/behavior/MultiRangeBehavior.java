@@ -6,6 +6,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Skin;
 import javafx.scene.input.MouseEvent;
 import multirange.MultiRange;
+import multirange.Range;
 import multirange.Utils;
 
 import java.util.ArrayList;
@@ -55,6 +56,62 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             newPosition = position * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
         } else {
             newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
+        }
+
+        /**
+         * Suppose a slider as follows:
+         * |--------L-------------H------------|
+         * Where L is the position of the lowest value and H is the high value of the range.
+         * c will be the position of the click.
+         */
+
+        /**
+         * |--------L------c------H------------|
+         * If the click position is in between a range, the H value of the range which has been clicked over
+         * will be changed to __ less than the clicked position. A new range will be created with values
+         * [clicked position + __, H].
+         * |--------L-----H-L------H------------|
+         */
+        if (multiRange.isInBetweenRange(newPosition)) {
+            Range r = multiRange.getRangeForPosition(newPosition);
+            double currentHigh = r.getHigh();
+            if(r.getAmplitude() > 0.2) {
+                if (r.getLow() > newPosition - 0.02) {
+                    r.setHigh(newPosition - 0.02);
+                    multiRange.createNewRange(newPosition + 0.02, currentHigh);
+                } else {
+                    r.setHigh(newPosition - 0.01);
+                    multiRange.createNewRange(newPosition + 0.01, currentHigh);
+                }
+            }
+            // TODO refresh r thumbs position!
+        }
+
+        /**
+         * |--c-----L-------------H------------|
+         * If there is enough space between the clicked position and a +__ position, just create that range.
+         * |--L----H--L-------------H-----------|
+         */
+        else if (multiRange.getSpaceToRightRange(newPosition) > 5) {
+
+        }
+
+        /**
+         * |------c-L-------------H------------|
+         * If there is enough space between the clicked position and a -__ position, just create that range.
+         * |--L----H-L-------------H-----------|
+         */
+        else if (multiRange.getSpaceToLeftRange(newPosition) > 5) {
+
+        }
+
+        /**
+         * |--------L-------------H------------|
+         * If there is not enough space to place a new range with a difference of __, then place a new one
+         * with a difference of only __.
+         */
+        else {
+
         }
 
     }

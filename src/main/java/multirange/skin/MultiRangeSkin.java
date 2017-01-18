@@ -76,13 +76,13 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         ThumbRange initialThumbs = new ThumbRange();
         initThumbs(initialThumbs, getNextId());
 
-        setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
+        //setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
     }
 
     private void initThumbs(ThumbRange t, int index) {
         thumbs.add(t);
 
-        getChildren().addAll(t.low, t.high);
+        getChildren().addAll(t.low, t.high, t.rangeBar);
 
         t.low.setOnMousePressed(me -> {
             t.low.setFocus(true);
@@ -108,6 +108,18 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             Point2D cur = t.high.localToParent(me.getX(), me.getY());
             double dragPos = cur.getX() - preDragThumbPoint.getX();
             getBehavior().highThumbDragged(me, preDragPos + dragPos / trackLength);
+        });
+
+        t.rangeBar.setOnMousePressed(me -> {
+            int i = getNextId();
+            currentId.setValue(i);
+            initThumbs(new ThumbRange(), i);
+
+            if (isHorizontal()) {
+                getBehavior().trackPress(me, (me.getX() / trackLength));
+            } else {
+                getBehavior().trackPress(me, (me.getY() / trackLength));
+            }
         });
     }
 
@@ -155,16 +167,15 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         getChildren().add(track);
 
         track.setOnMousePressed(me -> {
+            int index = getNextId();
+            currentId.setValue(index);
+            initThumbs(new ThumbRange(), index);
+
             if (isHorizontal()) {
                 getBehavior().trackPress(me, (me.getX() / trackLength));
             } else {
                 getBehavior().trackPress(me, (me.getY() / trackLength));
             }
-
-            int index = getNextId();
-            currentId.setValue(index);
-            initThumbs(new ThumbRange(), index);
-            getSkinnable().createNewRange(0.5, 1);
         });
     }
 
@@ -181,6 +192,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     private static class ThumbRange {
         ThumbPane low;
         ThumbPane high;
+        StackPane rangeBar;
 
         ThumbRange() {
             low = new ThumbPane();
@@ -190,6 +202,9 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             high = new ThumbPane();
             high.getStyleClass().setAll("low-thumb");
             high.setFocusTraversable(true);
+
+            rangeBar = new StackPane();
+            rangeBar.getStyleClass().setAll("range-bar");
         }
     }
 
@@ -242,6 +257,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             positionLowThumb();
             positionHighThumb();
             getSkinnable().valueChangingProperty().setValue(false);
+            getCurrentThumb().rangeBar.resizeRelocate(getCurrentThumb().low.getLayoutX() + getCurrentThumb().low.getWidth(), track.getLayoutY(),
+                    getCurrentThumb().high.getLayoutX() - getCurrentThumb().low.getLayoutX() - getCurrentThumb().low.getWidth(), track.getHeight());
         }
         super.handleControlPropertyChanged(p);
     }
@@ -299,7 +316,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         if (showTickMarks) {
             if (tickLine == null) {
                 tickLine = new NumberAxis();
-                tickLine.tickLabelFormatterProperty().bind(getSkinnable().labelFormatterProperty());
+//                tickLine.tickLabelFormatterProperty().bind(getSkinnable().labelFormatterProperty());
                 tickLine.setAnimated(false);
                 tickLine.setAutoRanging(false);
                 tickLine.setSide(isHorizontal() ? Side.BOTTOM : Side.RIGHT);
@@ -313,7 +330,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 // less minor ticks than the number given.
                 tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(), 0) + 1);
                 getChildren().clear();
-                getChildren().addAll(tickLine, track, lowThumb);
+//                getChildren().addAll(tickLine, track, lowThumb);
             } else {
                 tickLine.setTickLabelsVisible(labelsVisible);
                 tickLine.setTickMarkVisible(ticksVisible);
@@ -321,7 +338,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             }
         } else {
             getChildren().clear();
-            getChildren().addAll(track, lowThumb);
+//            getChildren().addAll(track, lowThumb);
 //            tickLine = null;
         }
 
