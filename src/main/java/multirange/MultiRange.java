@@ -604,8 +604,8 @@ public class MultiRange extends Control {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
 
-            if (isLow) range.setLow(newValue);
-            else range.setHigh(newValue);
+            if (isLow && range.getHigh() > newValue) range.setLow(newValue);
+            else if (!isLow && range.getLow() < newValue) range.setHigh(newValue);
 
             // need to remove and insert to notify of a change in an element of the list
             //ranges.set(index, null);
@@ -639,6 +639,23 @@ public class MultiRange extends Control {
         }
         return Utils.clamp(getMin(), d1, getMax());
     }
+
+    public boolean isInBetweenRange(double newPosition) {
+        return true;
+    }
+
+    public Range getRangeForPosition(double newPosition) {
+        return ranges.stream().filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny().get();
+    }
+
+    public double getSpaceToRightRange(double newPosition) {
+        return 0;
+    }
+
+    public double getSpaceToLeftRange(double newPosition) {
+        return 0;
+    }
+
 
 
 //    /**
