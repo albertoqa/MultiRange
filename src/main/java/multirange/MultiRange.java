@@ -604,14 +604,41 @@ public class MultiRange extends Control {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
 
-            if (isLow && range.getHigh() > newValue) range.setLow(newValue);
-            else if (!isLow && range.getLow() < newValue) range.setHigh(newValue);
+            if (isLow && isValidValue(true, range, newValue)) range.setLow(newValue);
+            else if (!isLow && isValidValue(false, range, newValue)) range.setHigh(newValue);
 
             // need to remove and insert to notify of a change in an element of the list
             //ranges.set(index, null);
             ranges.set(index, range);
             valueChangingProperty().setValue(true);
         }
+    }
+
+    public void updateRange(Range range) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            int index = ranges.indexOf(rangeOptional.get());
+            ranges.set(index, range);
+            valueChangingProperty().setValue(true);
+        }
+    }
+
+    // |--------L-----H-----L-----H----------|
+    private boolean isValidValue(boolean isLow, Range range, double newValue) {
+
+        if (isLow && newValue < range.getHigh()) {
+            return ranges.stream().filter(r -> r.getId() != range.getId())
+                    .filter(r -> r.getHigh() < range.getHigh())
+                    .filter(r -> r.getHigh() >= newValue)
+                    .count() == 0;
+        } else if (!isLow && range.getLow() < newValue) {
+            return ranges.stream().filter(r -> r.getId() != range.getId())
+                    .filter(r -> r.getLow() > range.getHigh())
+                    .filter(r -> r.getLow() <= newValue)
+                    .count() == 0;
+        }
+
+        return false;
     }
 
     private double getValue(boolean isLow) {
@@ -655,7 +682,6 @@ public class MultiRange extends Control {
     public double getSpaceToLeftRange(double newPosition) {
         return 0;
     }
-
 
 
 //    /**

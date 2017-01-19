@@ -78,6 +78,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             if(r.getAmplitude() > 0.2) {
                 if (r.getLow() > newPosition - 0.02) {
                     r.setHigh(newPosition - 0.02);
+                    multiRange.updateRange(r);
                     multiRange.createNewRange(newPosition + 0.02, currentHigh);
                 } else {
                     r.setHigh(newPosition - 0.01);
