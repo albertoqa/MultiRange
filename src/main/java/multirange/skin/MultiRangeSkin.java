@@ -158,6 +158,33 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         high.setLayoutY(ly);
     }
 
+    private void positionAllThumbs() {
+        MultiRange s = getSkinnable();
+        int prevVal = currentId.get();
+
+        for(int i = 0; i < thumbs.size(); i++) {
+            currentId.setValue(i);
+
+            double lxl = trackStart + (trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+            double lxh = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+            double ly = lowThumbPos;
+
+            ThumbRange thumbRange = getCurrentThumb();
+
+            thumbRange.low.setLayoutX(lxl);
+            thumbRange.low.setLayoutY(ly);
+
+            thumbRange.high.setLayoutX(lxh);
+            thumbRange.high.setLayoutY(ly);
+            thumbRange.high.resize(thumbWidth, thumbHeight);
+
+            thumbRange.rangeBar.resizeRelocate(thumbRange.low.getLayoutX() + thumbRange.low.getWidth(), track.getLayoutY(),
+                    thumbRange.high.getLayoutX() - thumbRange.low.getLayoutX() - thumbRange.low.getWidth(), track.getHeight());
+        }
+
+        currentId.setValue(prevVal);
+    }
+
 
     private void initTrack() {
         track = new StackPane();
@@ -243,8 +270,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackTop = (int) (startY + ((trackAreaHeight - trackHeight) / 2));
         lowThumbPos = (int) (startY + ((trackAreaHeight - thumbHeight) / 2));
 
-        positionLowThumb();
-        positionHighThumb();
+        positionAllThumbs();
 
         // layout track
         track.resizeRelocate(trackStart - trackRadius, trackTop, trackLength + trackRadius + trackRadius, trackHeight);

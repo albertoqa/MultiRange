@@ -623,9 +623,7 @@ public class MultiRange extends Control {
         }
     }
 
-    // |--------L-----H-----L-----H----------|
     private boolean isValidValue(boolean isLow, Range range, double newValue) {
-
         if (isLow && newValue < range.getHigh()) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
                     .filter(r -> r.getHigh() < range.getHigh())
@@ -637,7 +635,6 @@ public class MultiRange extends Control {
                     .filter(r -> r.getLow() <= newValue)
                     .count() == 0;
         }
-
         return false;
     }
 
