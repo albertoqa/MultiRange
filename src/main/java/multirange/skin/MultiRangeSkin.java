@@ -310,7 +310,35 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     @Override
     protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
-        if ("RANGES".equals(p)) {
+        if ("ORIENTATION".equals(p)) { //$NON-NLS-1$
+            orientation = getSkinnable().getOrientation();
+            if (showTickMarks && tickLine != null) {
+                tickLine.setSide(isHorizontal() ? Side.BOTTOM : Side.RIGHT);
+            }
+            getSkinnable().requestLayout();
+        } else if ("MIN".equals(p) ) { //$NON-NLS-1$
+            if (showTickMarks && tickLine != null) {
+                tickLine.setLowerBound(getSkinnable().getMin());
+            }
+            getSkinnable().requestLayout();
+        } else if ("MAX".equals(p)) { //$NON-NLS-1$
+            if (showTickMarks && tickLine != null) {
+                tickLine.setUpperBound(getSkinnable().getMax());
+            }
+            getSkinnable().requestLayout();
+        } else if ("SHOW_TICK_MARKS".equals(p) || "SHOW_TICK_LABELS".equals(p)) { //$NON-NLS-1$ //$NON-NLS-2$
+            setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
+        }  else if ("MAJOR_TICK_UNIT".equals(p)) { //$NON-NLS-1$
+            if (tickLine != null) {
+                tickLine.setTickUnit(getSkinnable().getMajorTickUnit());
+                getSkinnable().requestLayout();
+            }
+        } else if ("MINOR_TICK_COUNT".equals(p)) { //$NON-NLS-1$
+            if (tickLine != null) {
+                tickLine.setMinorTickCount(Math.max(getSkinnable().getMinorTickCount(), 0) + 1);
+                getSkinnable().requestLayout();
+            }
+        } else if ("RANGES".equals(p)) {
             positionLowThumb();
             positionHighThumb();
             getSkinnable().valueChangingProperty().setValue(false);
