@@ -42,11 +42,6 @@ public class MultiRange extends Control {
         setMin(min);
         setMax(max);
 
-        // TODO
-        //adjustValues();
-        //setLowValue(lowValue);
-        //setHighValue(highValue);
-
         // Add the first range to the slider with the values min/max for the
         // lower/higher values respectively.
         ranges.add(new Range(currentRangeId.get(), min, max));
@@ -151,12 +146,32 @@ public class MultiRange extends Control {
      *                                                                         *
      **************************************************************************/
 
-    private DoubleProperty max;
+    private DoubleProperty max; // maximum value of the slider
+    private DoubleProperty min; // minimum value of the slider
+
+    private BooleanProperty snapToTicks;    // indicates whether the range values should be aligned with the tick marks
+    private DoubleProperty majorTickUnit;   // the unit distance between major tick marks
+    private IntegerProperty minorTickCount; // the number of minor ticks to place between any two major ticks.
+    private DoubleProperty blockIncrement;  // sets the amount by which to adjust the slider if the track of the slider is clicked
+
+    private ObjectProperty<Orientation> orientation;    // the orientation of the slider horizontal/vertical
+    private BooleanProperty showTickLabels;             // whether labels of tick marks should be shown or not
+    private BooleanProperty showTickMarks;              // whether the skin implementation should show tick marks
+
+    // StringConverter used to format tick mark labels
+    private final ObjectProperty<StringConverter<Number>> tickLabelFormatter = new SimpleObjectProperty<>();
+
+
+    /***************************************************************************
+     *                                                                         *
+     * Setters/Getters for the properties (slightly edited)                    *
+     *                                                                         *
+     **************************************************************************/
 
     /**
      * Sets the maximum value for this Slider.
      *
-     * @param value
+     * @param value new max value
      */
     public final void setMax(double value) {
         maxProperty().set(value);
@@ -182,6 +197,7 @@ public class MultiRange extends Control {
                     if (get() < getMin()) {
                         setMin(get());
                     }
+                    // TODO
                     //adjustValues();
                 }
 
@@ -192,19 +208,17 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "max"; //$NON-NLS-1$
+                    return "max";
                 }
             };
         }
         return max;
     }
 
-    private DoubleProperty min;
-
     /**
      * Sets the minimum value for this Slider.
      *
-     * @param value
+     * @param value new min value
      */
     public final void setMin(double value) {
         minProperty().set(value);
@@ -230,6 +244,7 @@ public class MultiRange extends Control {
                     if (get() > getMax()) {
                         setMax(get());
                     }
+                    // TODO
                     //adjustValues();
                 }
 
@@ -240,17 +255,12 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "min"; //$NON-NLS-1$
+                    return "min";
                 }
             };
         }
         return min;
     }
-
-    /**
-     *
-     */
-    private BooleanProperty snapToTicks;
 
     /**
      * Sets the value of SnapToTicks.
@@ -267,11 +277,11 @@ public class MultiRange extends Control {
      * @see #snapToTicksProperty()
      */
     public final boolean isSnapToTicks() {
-        return snapToTicks == null ? false : snapToTicks.get();
+        return snapToTicks != null && snapToTicks.get();
     }
 
     /**
-     * Indicates whether the current low value high value of the {@code Slider} should always
+     * Indicates whether the current low value/high value of the {@code Slider} should always
      * be aligned with the tick marks. This is honored even if the tick marks
      * are not shown.
      *
@@ -292,7 +302,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "snapToTicks"; //$NON-NLS-1$
+                    return "snapToTicks";
                 }
             };
         }
@@ -300,19 +310,14 @@ public class MultiRange extends Control {
     }
 
     /**
-     *
-     */
-    private DoubleProperty majorTickUnit;
-
-    /**
      * Sets the unit distance between major tick marks.
      *
-     * @param value
+     * @param value new major tick unit
      * @see #majorTickUnitProperty()
      */
     public final void setMajorTickUnit(double value) {
         if (value <= 0) {
-            throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0."); //$NON-NLS-1$
+            throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0.");
         }
         majorTickUnitProperty().set(value);
     }
@@ -344,7 +349,7 @@ public class MultiRange extends Control {
                 @Override
                 public void invalidated() {
                     if (get() <= 0) {
-                        throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0."); //$NON-NLS-1$
+                        throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0."); 
                     }
                 }
 
@@ -360,22 +365,18 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "majorTickUnit"; //$NON-NLS-1$
+                    return "majorTickUnit";
                 }
             };
         }
         return majorTickUnit;
     }
 
-    /**
-     *
-     */
-    private IntegerProperty minorTickCount;
 
     /**
      * Sets the number of minor ticks to place between any two major ticks.
      *
-     * @param value
+     * @param value new minor tick count
      * @see #minorTickCountProperty()
      */
     public final void setMinorTickCount(int value) {
@@ -412,17 +413,12 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "minorTickCount"; //$NON-NLS-1$
+                    return "minorTickCount"; 
                 }
             };
         }
         return minorTickCount;
     }
-
-    /**
-     *
-     */
-    private DoubleProperty blockIncrement;
 
     /**
      * Sets the amount by which to adjust the slider if the track of the slider is
@@ -467,7 +463,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "blockIncrement"; //$NON-NLS-1$
+                    return "blockIncrement";
                 }
             };
         }
@@ -475,14 +471,9 @@ public class MultiRange extends Control {
     }
 
     /**
-     *
-     */
-    private ObjectProperty<Orientation> orientation;
-
-    /**
      * Sets the orientation of the Slider.
      *
-     * @param value
+     * @param value new orientation
      */
     public final void setOrientation(Orientation value) {
         orientationProperty().set(value);
@@ -524,14 +515,12 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "orientation"; //$NON-NLS-1$
+                    return "orientation"; 
                 }
             };
         }
         return orientation;
     }
-
-    private BooleanProperty showTickLabels;
 
     /**
      * Sets whether labels of tick marks should be shown or not.
@@ -546,7 +535,7 @@ public class MultiRange extends Control {
      * @return whether labels of tick marks are being shown.
      */
     public final boolean isShowTickLabels() {
-        return showTickLabels == null ? false : showTickLabels.get();
+        return showTickLabels != null && showTickLabels.get();
     }
 
     /**
@@ -571,17 +560,12 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "showTickLabels"; //$NON-NLS-1$
+                    return "showTickLabels"; 
                 }
             };
         }
         return showTickLabels;
     }
-
-    /**
-     *
-     */
-    private BooleanProperty showTickMarks;
 
     /**
      * Specifies whether the {@link Skin} implementation should show tick marks.
@@ -596,7 +580,7 @@ public class MultiRange extends Control {
      * @return whether the {@link Skin} implementation should show tick marks.
      */
     public final boolean isShowTickMarks() {
-        return showTickMarks == null ? false : showTickMarks.get();
+        return showTickMarks != null && showTickMarks.get();
     }
 
     /**
@@ -618,14 +602,12 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "showTickMarks"; //$NON-NLS-1$
+                    return "showTickMarks"; 
                 }
             };
         }
         return showTickMarks;
     }
-
-    private final ObjectProperty<StringConverter<Number>> tickLabelFormatter = new SimpleObjectProperty<>();
 
     /**
      * Gets the value of the property tickLabelFormatter.
@@ -799,7 +781,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Boolean> SHOW_TICK_MARKS =
-                new CssMetaData<MultiRange, Boolean>("-fx-show-tick-marks", //$NON-NLS-1$
+                new CssMetaData<MultiRange, Boolean>("-fx-show-tick-marks", 
                         BooleanConverter.getInstance(), Boolean.FALSE) {
 
                     @Override
@@ -815,7 +797,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Boolean> SNAP_TO_TICKS =
-                new CssMetaData<MultiRange, Boolean>("-fx-snap-to-ticks", //$NON-NLS-1$
+                new CssMetaData<MultiRange, Boolean>("-fx-snap-to-ticks", 
                         BooleanConverter.getInstance(), Boolean.FALSE) {
 
                     @Override
@@ -831,7 +813,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Number> MAJOR_TICK_UNIT =
-                new CssMetaData<MultiRange, Number>("-fx-major-tick-unit", //$NON-NLS-1$
+                new CssMetaData<MultiRange, Number>("-fx-major-tick-unit", 
                         SizeConverter.getInstance(), 25.0) {
 
                     @Override
@@ -847,7 +829,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Number> MINOR_TICK_COUNT =
-                new CssMetaData<MultiRange, Number>("-fx-minor-tick-count", //$NON-NLS-1$
+                new CssMetaData<MultiRange, Number>("-fx-minor-tick-count", 
                         SizeConverter.getInstance(), 3.0) {
 
                     @SuppressWarnings("deprecation")
@@ -869,7 +851,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Orientation> ORIENTATION =
-                new CssMetaData<MultiRange, Orientation>("-fx-orientation", //$NON-NLS-1$
+                new CssMetaData<MultiRange, Orientation>("-fx-orientation", 
                         new EnumConverter<>(Orientation.class),
                         Orientation.HORIZONTAL) {
 

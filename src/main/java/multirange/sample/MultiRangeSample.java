@@ -12,7 +12,15 @@ public class MultiRangeSample extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setScene(new Scene(new MultiRange()));
+
+        MultiRange multiRange = new MultiRange(0, 100);
+        multiRange.setShowTickLabels(true);
+        multiRange.setShowTickMarks(true);
+        multiRange.setMinorTickCount(10);
+        multiRange.setSnapToTicks(true);
+
+
+        primaryStage.setScene(new Scene(multiRange));
         primaryStage.show();
     }
 
