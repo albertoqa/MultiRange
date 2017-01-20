@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) 2013, 2015 ControlsFX
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *     * Neither the name of ControlsFX, any associated website, nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL CONTROLSFX BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package multirange;
 
 import com.sun.javafx.css.converters.BooleanConverter;
@@ -106,39 +132,6 @@ public class MultiRange extends Control {
     public double getHighValue() {
         return getValue(false);
     }
-
-    /**
-     * Increments the current low value pressed by the
-     * {@link #blockIncrementProperty() block increment} amount.
-     */
-    public void incrementLowValue() {
-        setLowRangeValue(getLowValue() + getBlockIncrement());
-    }
-
-    /**
-     * Decrements the current low value pressed by the
-     * {@link #blockIncrementProperty() block increment} amount.
-     */
-    public void decrementLowValue() {
-        setLowRangeValue(getLowValue() - getBlockIncrement());
-    }
-
-    /**
-     * Increments the current high value pressed by the
-     * {@link #blockIncrementProperty() block increment} amount.
-     */
-    public void incrementHighValue() {
-        setHighRangeValue(getHighValue() + getBlockIncrement());
-    }
-
-    /**
-     * Decrements the current high value pressed by the
-     * {@link #blockIncrementProperty() block increment} amount.
-     */
-    public void decrementHighValue() {
-        setHighRangeValue(getHighValue() - getBlockIncrement());
-    }
-
 
     /***************************************************************************
      *                                                                         *
@@ -421,56 +414,6 @@ public class MultiRange extends Control {
     }
 
     /**
-     * Sets the amount by which to adjust the slider if the track of the slider is
-     * clicked.
-     *
-     * @param value
-     * @see #blockIncrementProperty()
-     */
-    public final void setBlockIncrement(double value) {
-        blockIncrementProperty().set(value);
-    }
-
-    /**
-     * @return The amount by which to adjust the slider if the track of the slider is
-     * clicked.
-     * @see #blockIncrementProperty()
-     */
-    public final double getBlockIncrement() {
-        return blockIncrement == null ? 10 : blockIncrement.get();
-    }
-
-    /**
-     * The amount by which to adjust the slider if the track of the slider is
-     * clicked. This is used when manipulating the slider position using keys. If
-     * {@link #snapToTicksProperty() snapToTicks} is true then the nearest tick mark to the adjusted
-     * value will be used.
-     *
-     * @return A DoubleProperty
-     */
-    public final DoubleProperty blockIncrementProperty() {
-        if (blockIncrement == null) {
-            blockIncrement = new StyleableDoubleProperty(10) {
-                @Override
-                public CssMetaData<? extends Styleable, Number> getCssMetaData() {
-                    return MultiRange.StyleableProperties.BLOCK_INCREMENT;
-                }
-
-                @Override
-                public Object getBean() {
-                    return MultiRange.this;
-                }
-
-                @Override
-                public String getName() {
-                    return "blockIncrement";
-                }
-            };
-        }
-        return blockIncrement;
-    }
-
-    /**
      * Sets the orientation of the Slider.
      *
      * @param value new orientation
@@ -750,20 +693,6 @@ public class MultiRange extends Control {
     }
 
     private static class StyleableProperties {
-        private static final CssMetaData<MultiRange, Number> BLOCK_INCREMENT =
-                new CssMetaData<MultiRange, Number>("-fx-block-increment", SizeConverter.getInstance(), 10.0) {
-
-                    @Override
-                    public boolean isSettable(MultiRange n) {
-                        return n.blockIncrement == null || !n.blockIncrement.isBound();
-                    }
-
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public StyleableProperty<Number> getStyleableProperty(MultiRange n) {
-                        return (StyleableProperty<Number>) n.blockIncrementProperty();
-                    }
-                };
 
         private static final CssMetaData<MultiRange, Boolean> SHOW_TICK_LABELS =
                 new CssMetaData<MultiRange, Boolean>("-fx-show-tick-labels", BooleanConverter.getInstance(), Boolean.FALSE) {
@@ -877,7 +806,6 @@ public class MultiRange extends Control {
 
         static {
             final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Control.getClassCssMetaData());
-            styleables.add(BLOCK_INCREMENT);
             styleables.add(SHOW_TICK_LABELS);
             styleables.add(SHOW_TICK_MARKS);
             styleables.add(SNAP_TO_TICKS);

@@ -1,6 +1,7 @@
 package multirange.sample;
 
 import javafx.application.Application;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import multirange.MultiRange;
@@ -18,7 +19,6 @@ public class MultiRangeSample extends Application {
         multiRange.setShowTickMarks(true);
         multiRange.setMinorTickCount(10);
         multiRange.setSnapToTicks(true);
-
 
         primaryStage.setScene(new Scene(multiRange));
         primaryStage.show();
