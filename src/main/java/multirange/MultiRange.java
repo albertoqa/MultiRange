@@ -8,6 +8,7 @@ import javafx.css.*;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
+import javafx.util.StringConverter;
 import multirange.behavior.MultiRangeBehavior;
 import multirange.skin.MultiRangeSkin;
 
@@ -110,6 +111,39 @@ public class MultiRange extends Control {
     public double getHighValue() {
         return getValue(false);
     }
+
+    /**
+     * Increments the current low value pressed by the
+     * {@link #blockIncrementProperty() block increment} amount.
+     */
+    public void incrementLowValue() {
+        setLowRangeValue(getLowValue() + getBlockIncrement());
+    }
+
+    /**
+     * Decrements the current low value pressed by the
+     * {@link #blockIncrementProperty() block increment} amount.
+     */
+    public void decrementLowValue() {
+        setLowRangeValue(getLowValue() - getBlockIncrement());
+    }
+
+    /**
+     * Increments the current high value pressed by the
+     * {@link #blockIncrementProperty() block increment} amount.
+     */
+    public void incrementHighValue() {
+        setHighRangeValue(getHighValue() + getBlockIncrement());
+    }
+
+    /**
+     * Decrements the current high value pressed by the
+     * {@link #blockIncrementProperty() block increment} amount.
+     */
+    public void decrementHighValue() {
+        setHighRangeValue(getHighValue() - getBlockIncrement());
+    }
+
 
     /***************************************************************************
      *                                                                         *
@@ -237,8 +271,7 @@ public class MultiRange extends Control {
     }
 
     /**
-     * Indicates whether the {@link #lowValueProperty()} value} /
-     * {@link #highValueProperty()} value} of the {@code Slider} should always
+     * Indicates whether the current low value high value of the {@code Slider} should always
      * be aligned with the tick marks. This is honored even if the tick marks
      * are not shown.
      *
@@ -592,6 +625,35 @@ public class MultiRange extends Control {
         return showTickMarks;
     }
 
+    private final ObjectProperty<StringConverter<Number>> tickLabelFormatter = new SimpleObjectProperty<>();
+
+    /**
+     * Gets the value of the property tickLabelFormatter.
+     *
+     * @return the value of the property tickLabelFormatter.
+     */
+    public final StringConverter<Number> getLabelFormatter() {
+        return tickLabelFormatter.get();
+    }
+
+    /**
+     * Sets the value of the property tickLabelFormatter.
+     *
+     * @param value
+     */
+    public final void setLabelFormatter(StringConverter<Number> value) {
+        tickLabelFormatter.set(value);
+    }
+
+    /**
+     * StringConverter used to format tick mark labels. If null a default will be used.
+     *
+     * @return a Property containing the StringConverter.
+     */
+    public final ObjectProperty<StringConverter<Number>> labelFormatterProperty() {
+        return tickLabelFormatter;
+    }
+
     /***************************************************************************
      *                                                                         *
      * Private methods                                                         *
@@ -603,9 +665,10 @@ public class MultiRange extends Control {
         if (rangeOptional.isPresent()) {
             Range range = rangeOptional.get();
             int index = ranges.indexOf(range);
+            double value = snapValueToTicks(newValue);
 
-            if (isLow && isValidValue(true, range, newValue)) range.setLow(newValue);
-            else if (!isLow && isValidValue(false, range, newValue)) range.setHigh(newValue);
+            if (isLow && isValidValue(true, range, value)) range.setLow(value);
+            else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
 
             // need to remove and insert to notify of a change in an element of the list
             //ranges.set(index, null);
@@ -679,46 +742,6 @@ public class MultiRange extends Control {
     public double getSpaceToLeftRange(double newPosition) {
         return 0;
     }
-
-
-//    /**
-//     * Ensures that min is always < max, that value is always
-//     * somewhere between the two, and that if snapToTicks is set then the
-//     * value will always be set to align with a tick mark.
-//     */
-//    private void adjustValues() {
-//        adjustLowValues();
-//        adjustHighValues();
-//    }
-//
-//    private void adjustLowValues() {
-//        /**
-//         * We first look if the LowValue is between the min and max.
-//         */
-//        if (getLowValue() < getMin() || getLowValue() > getMax()) {
-//            double value = Utils.clamp(getMin(), getLowValue(), getMax());
-//            setLowValue(value);
-//            /**
-//             * If the LowValue seems right, we check if it's not superior to
-//             * HighValue ONLY if the highValue itself is right. Because it may
-//             * happen that the highValue has not yet been computed and is
-//             * wrong, and therefore force the lowValue to change in a wrong way
-//             * which may end up in an infinite loop.
-//             */
-//        } else if (getLowValue() >= getHighValue() && (getHighValue() >= getMin() && getHighValue() <= getMax())) {
-//            double value = Utils.clamp(getMin(), getLowValue(), getHighValue());
-//            setLowValue(value);
-//        }
-//    }
-//
-//    private void adjustHighValues() {
-//        if (getHighValue() < getMin() || getHighValue() > getMax()) {
-//            setHighValue(Utils.clamp(getMin(), getHighValue(), getMax()));
-//        } else if (getHighValue() < getLowValue() && (getLowValue() >= getMin() && getLowValue() <= getMax())) {
-//            setHighValue(Utils.clamp(getLowValue(), getHighValue(), getMax()));
-//        }
-//    }
-
 
     /***************************************************************************
      *                                                                         *
