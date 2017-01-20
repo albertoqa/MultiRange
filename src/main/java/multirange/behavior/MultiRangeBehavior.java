@@ -92,34 +92,11 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
          */
 
         /**
-         * |--------L------c------H------------|
-         * If the click position is in between a range, the H value of the range which has been clicked over
-         * will be changed to __ less than the clicked position. A new range will be created with values
-         * [clicked position + __, H].
-         * |--------L-----H-L------H------------|
-         */
-        if (multiRange.isInBetweenRange(newPosition)) {
-            Range r = multiRange.getRangeForPosition(newPosition);
-            double currentHigh = r.getHigh();
-            if(r.getAmplitude() > 0.2) {
-                if (r.getLow() > newPosition - 0.02) {
-                    r.setHigh(newPosition - 0.02);
-                    multiRange.updateRange(r);
-                    multiRange.createNewRange(newPosition + 0.02, currentHigh);
-                } else {
-                    r.setHigh(newPosition - 0.01);
-                    multiRange.createNewRange(newPosition + 0.01, currentHigh);
-                }
-            }
-            // TODO refresh r thumbs position!
-        }
-
-        /**
          * |--c-----L-------------H------------|
          * If there is enough space between the clicked position and a +__ position, just create that range.
          * |--L----H--L-------------H-----------|
          */
-        else if (multiRange.getSpaceToRightRange(newPosition) > 5) {
+        if (multiRange.getSpaceToRightRange(newPosition) > 5) {
 
         }
 
@@ -143,29 +120,47 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
     }
 
-    public void lowThumbPressed() {
-        // If not already focused, request focus
+    public void rangeBarPressed(double position) {
         final MultiRange multiRange = getControl();
-        if (!multiRange.isFocused()) multiRange.requestFocus();
-        multiRange.setValueChanging(true);
+
+        // If not already focused, request focus
+        if (!multiRange.isFocused()) {
+            multiRange.requestFocus();
+        }
+
+        double newPosition;
+        if (multiRange.getOrientation().equals(Orientation.HORIZONTAL)) {
+            newPosition = position * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
+        } else {
+            newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
+        }
+
+        /*
+         * |--------L------c------H------------|
+         * If the click position is in between a range, the H value of the range which has been clicked over
+         * will be changed to __ less than the clicked position. A new range will be created with values
+         * [clicked position + __, H].
+         * |--------L-----H-L------H------------|
+         */
+        Range r = multiRange.getRangeForPosition(newPosition);
+        double currentHigh = r.getHigh();
+        if (r.getAmplitude() > 0.2) {
+            if (r.getLow() > newPosition - 0.02) {
+                r.setHigh(newPosition - 0.02);
+                multiRange.updateRange(r);
+                multiRange.createNewRange(newPosition + 0.02, currentHigh);
+            } else {
+                r.setHigh(newPosition - 0.01);
+                multiRange.createNewRange(newPosition + 0.01, currentHigh);
+            }
+        }
+
     }
 
     public void lowThumbDragged(double position) {
         getControl().setLowRangeValue(getNewPosition(position));
     }
 
-    /**
-     * When lowThumb is released lowValueChanging should be set to false.
-     */
-//    public void lowThumbReleased(MouseEvent e) {
-//        final MultiRange multiRange = getControl();
-//        multiRange.setValueChanging(false);
-//        // RT-15207 When snapToTicks is true, slider value calculated in drag
-//        // is then snapped to the nearest tick on mouse release.
-//        if (multiRange.isSnapToTicks()) {
-//            multiRange.setLowValue(snapValueToTicks(multiRange.getLowValue()));
-//        }
-//    }
     public void highThumbDragged(MouseEvent e, double position) {
         getControl().setHighRangeValue(getNewPosition(position));
     }

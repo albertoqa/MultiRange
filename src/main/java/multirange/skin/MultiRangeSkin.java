@@ -147,9 +147,9 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             initThumbs(new ThumbRange(), i);
 
             if (isHorizontal()) {
-                getBehavior().trackPress(me, (me.getX() / trackLength));
+                getBehavior().rangeBarPressed((me.getX() / trackLength));
             } else {
-                getBehavior().trackPress(me, (me.getY() / trackLength));
+                getBehavior().rangeBarPressed((me.getY() / trackLength));
             }
         });
     }

@@ -83,6 +83,124 @@ public class MultiRange extends Control {
     private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);
     private BooleanProperty valueChanging;
 
+
+    /***************************************************************************
+     *                                                                         *
+     * Properties copied from Slider (and slightly edited)                     *
+     *                                                                         *
+     **************************************************************************/
+
+    private DoubleProperty max; // maximum value of the slider
+    private DoubleProperty min; // minimum value of the slider
+
+    private BooleanProperty snapToTicks;    // indicates whether the range values should be aligned with the tick marks
+    private DoubleProperty majorTickUnit;   // the unit distance between major tick marks
+    private IntegerProperty minorTickCount; // the number of minor ticks to place between any two major ticks.
+    private DoubleProperty blockIncrement;  // sets the amount by which to adjust the slider if the track of the slider is clicked
+
+    private ObjectProperty<Orientation> orientation;    // the orientation of the slider horizontal/vertical
+    private BooleanProperty showTickLabels;             // whether labels of tick marks should be shown or not
+    private BooleanProperty showTickMarks;              // whether the skin implementation should show tick marks
+
+    // StringConverter used to format tick mark labels
+    private final ObjectProperty<StringConverter<Number>> tickLabelFormatter = new SimpleObjectProperty<>();
+
+
+    /***************************************************************************
+     *                                                                         *
+     * Private methods                                                         *
+     *                                                                         *
+     **************************************************************************/
+
+    private void setValue(double newValue, boolean isLow) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            Range range = rangeOptional.get();
+            int index = ranges.indexOf(range);
+            double value = snapValueToTicks(newValue);
+
+            if (isLow && isValidValue(true, range, value)) range.setLow(value);
+            else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
+
+            // need to remove and insert to notify of a change in an element of the list
+            //ranges.set(index, null);
+            ranges.set(index, range);
+            valueChangingProperty().setValue(true);
+        }
+    }
+
+    public void updateRange(Range range) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            int index = ranges.indexOf(rangeOptional.get());
+            ranges.set(index, range);
+            valueChangingProperty().setValue(true);
+        }
+    }
+
+    private boolean isValidValue(boolean isLow, Range range, double newValue) {
+        if (isLow && newValue < range.getHigh()) {
+            return ranges.stream().filter(r -> r.getId() != range.getId())
+                    .filter(r -> r.getHigh() < range.getHigh())
+                    .filter(r -> r.getHigh() >= newValue)
+                    .count() == 0;
+        } else if (!isLow && range.getLow() < newValue) {
+            return ranges.stream().filter(r -> r.getId() != range.getId())
+                    .filter(r -> r.getLow() > range.getHigh())
+                    .filter(r -> r.getLow() <= newValue)
+                    .count() == 0;
+        }
+        return false;
+    }
+
+    private double getValue(boolean isLow) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            if (isLow) return rangeOptional.get().getLow();
+            else return rangeOptional.get().getHigh();
+        }
+        return -1;
+    }
+
+    private double snapValueToTicks(double d) {
+        double d1 = d;
+        if (isSnapToTicks()) {
+            double d2 = 0.0D;
+            if (getMinorTickCount() != 0) {
+                d2 = getMajorTickUnit() / (double) (Math.max(getMinorTickCount(), 0) + 1);
+            } else {
+                d2 = getMajorTickUnit();
+            }
+            int i = (int) ((d1 - getMin()) / d2);
+            double d3 = (double) i * d2 + getMin();
+            double d4 = (double) (i + 1) * d2 + getMin();
+            d1 = Utils.nearest(d3, d1, d4);
+        }
+        return Utils.clamp(getMin(), d1, getMax());
+    }
+
+    public boolean isInBetweenRange(double newPosition) {
+        return true;
+    }
+
+    public Range getRangeForPosition(double newPosition) {
+        return ranges.stream().filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny().get();
+    }
+
+    public double getSpaceToRightRange(double newPosition) {
+        return 0;
+    }
+
+    public double getSpaceToLeftRange(double newPosition) {
+        return 0;
+    }
+
+    /***************************************************************************
+     *                                                                         *
+     * Public methods                                                          *
+     *                                                                         *
+     **************************************************************************/
+
     public int getCurrentRangeId() {
         return currentRangeId.get();
     }
@@ -132,27 +250,6 @@ public class MultiRange extends Control {
     public double getHighValue() {
         return getValue(false);
     }
-
-    /***************************************************************************
-     *                                                                         *
-     * Properties copied from Slider (and slightly edited)                     *
-     *                                                                         *
-     **************************************************************************/
-
-    private DoubleProperty max; // maximum value of the slider
-    private DoubleProperty min; // minimum value of the slider
-
-    private BooleanProperty snapToTicks;    // indicates whether the range values should be aligned with the tick marks
-    private DoubleProperty majorTickUnit;   // the unit distance between major tick marks
-    private IntegerProperty minorTickCount; // the number of minor ticks to place between any two major ticks.
-    private DoubleProperty blockIncrement;  // sets the amount by which to adjust the slider if the track of the slider is clicked
-
-    private ObjectProperty<Orientation> orientation;    // the orientation of the slider horizontal/vertical
-    private BooleanProperty showTickLabels;             // whether labels of tick marks should be shown or not
-    private BooleanProperty showTickMarks;              // whether the skin implementation should show tick marks
-
-    // StringConverter used to format tick mark labels
-    private final ObjectProperty<StringConverter<Number>> tickLabelFormatter = new SimpleObjectProperty<>();
 
 
     /***************************************************************************
@@ -577,95 +674,6 @@ public class MultiRange extends Control {
      */
     public final ObjectProperty<StringConverter<Number>> labelFormatterProperty() {
         return tickLabelFormatter;
-    }
-
-    /***************************************************************************
-     *                                                                         *
-     * Private methods                                                         *
-     *                                                                         *
-     **************************************************************************/
-
-    private void setValue(double newValue, boolean isLow) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
-        if (rangeOptional.isPresent()) {
-            Range range = rangeOptional.get();
-            int index = ranges.indexOf(range);
-            double value = snapValueToTicks(newValue);
-
-            if (isLow && isValidValue(true, range, value)) range.setLow(value);
-            else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
-
-            // need to remove and insert to notify of a change in an element of the list
-            //ranges.set(index, null);
-            ranges.set(index, range);
-            valueChangingProperty().setValue(true);
-        }
-    }
-
-    public void updateRange(Range range) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
-        if (rangeOptional.isPresent()) {
-            int index = ranges.indexOf(rangeOptional.get());
-            ranges.set(index, range);
-            valueChangingProperty().setValue(true);
-        }
-    }
-
-    private boolean isValidValue(boolean isLow, Range range, double newValue) {
-        if (isLow && newValue < range.getHigh()) {
-            return ranges.stream().filter(r -> r.getId() != range.getId())
-                    .filter(r -> r.getHigh() < range.getHigh())
-                    .filter(r -> r.getHigh() >= newValue)
-                    .count() == 0;
-        } else if (!isLow && range.getLow() < newValue) {
-            return ranges.stream().filter(r -> r.getId() != range.getId())
-                    .filter(r -> r.getLow() > range.getHigh())
-                    .filter(r -> r.getLow() <= newValue)
-                    .count() == 0;
-        }
-        return false;
-    }
-
-    private double getValue(boolean isLow) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
-        if (rangeOptional.isPresent()) {
-            if (isLow) return rangeOptional.get().getLow();
-            else return rangeOptional.get().getHigh();
-        }
-        return -1;
-    }
-
-    private double snapValueToTicks(double d) {
-        double d1 = d;
-        if (isSnapToTicks()) {
-            double d2 = 0.0D;
-            if (getMinorTickCount() != 0) {
-                d2 = getMajorTickUnit() / (double) (Math.max(getMinorTickCount(), 0) + 1);
-            } else {
-                d2 = getMajorTickUnit();
-            }
-            int i = (int) ((d1 - getMin()) / d2);
-            double d3 = (double) i * d2 + getMin();
-            double d4 = (double) (i + 1) * d2 + getMin();
-            d1 = Utils.nearest(d3, d1, d4);
-        }
-        return Utils.clamp(getMin(), d1, getMax());
-    }
-
-    public boolean isInBetweenRange(double newPosition) {
-        return true;
-    }
-
-    public Range getRangeForPosition(double newPosition) {
-        return ranges.stream().filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny().get();
-    }
-
-    public double getSpaceToRightRange(double newPosition) {
-        return 0;
-    }
-
-    public double getSpaceToLeftRange(double newPosition) {
-        return 0;
     }
 
     /***************************************************************************
