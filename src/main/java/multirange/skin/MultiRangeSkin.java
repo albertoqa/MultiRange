@@ -410,12 +410,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
     }
 
     private boolean isHorizontal() {
-        return true;
+        return getSkinnable().getOrientation() == Orientation.HORIZONTAL;
     }
 
     /**
      * When ticks or labels are changing of visibility, we compute the new
-     * visibility and add the necessary objets. After this method, we must be
+     * visibility and add the necessary objects. After this method, we must be
      * sure to add the high Thumb and the rangeBar.
      *
      * @param ticksVisible
