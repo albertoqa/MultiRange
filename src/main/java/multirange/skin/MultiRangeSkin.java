@@ -99,13 +99,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
     private void initInitialThumbs() {
         thumbs = new ArrayList<>();
-        ThumbRange initialThumbs = new ThumbRange();
-        initThumbs(initialThumbs, getNextId());
-
+        ThumbRange initialThumbs = new ThumbRange(getNextId());
+        initThumbs(initialThumbs);
         setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
     }
 
-    private void initThumbs(ThumbRange t, int index) {
+    private void initThumbs(ThumbRange t) {
         thumbs.add(t);
 
         getChildren().addAll(t.low, t.high, t.rangeBar);
@@ -113,21 +112,21 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         t.low.setOnMousePressed(me -> {
             // TODO clear other focus
             t.low.setFocus(true);
-            currentId.setValue(index);
+            currentId.setValue(t.id);
             preDragThumbPoint = t.low.localToParent(me.getX(), me.getY());
             preDragPos = (getSkinnable().getLowValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
 
         t.low.setOnMouseDragged(me -> {
             Point2D cur = t.low.localToParent(me.getX(), me.getY());
-            double dragPos = (isHorizontal())? cur.getX() - preDragThumbPoint.getX() : -(cur.getY() - preDragThumbPoint.getY());
+            double dragPos = (isHorizontal()) ? cur.getX() - preDragThumbPoint.getX() : -(cur.getY() - preDragThumbPoint.getY());
             getBehavior().lowThumbDragged(preDragPos + dragPos / trackLength);
         });
 
         t.high.setOnMousePressed(me -> {
             // TODO clear other focus
             t.high.setFocus(true);
-            currentId.setValue(index);
+            currentId.setValue(t.id);
             preDragThumbPoint = t.high.localToParent(me.getX(), me.getY());
             preDragPos = (getSkinnable().getHighValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
@@ -137,38 +136,38 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             double trackLength = orientation ? track.getWidth() : track.getHeight();
             Point2D cur = t.high.localToParent(me.getX(), me.getY());
             double dragPos = getSkinnable().getOrientation() != Orientation.HORIZONTAL ? -(cur.getY() - preDragThumbPoint.getY()) : cur.getX() - preDragThumbPoint.getX();
-            getBehavior().highThumbDragged(me, preDragPos + dragPos / trackLength);
+            getBehavior().highThumbDragged(preDragPos + dragPos / trackLength);
 
         });
 
         t.rangeBar.setOnMousePressed(me -> {
-            int i = getNextId();
-            currentId.setValue(i);
-            initThumbs(new ThumbRange(), i);
+            if (me.isPrimaryButtonDown()) {
+                int i = getNextId();
+                currentId.setValue(i);
 
-            if (isHorizontal()) {
-                getBehavior().rangeBarPressed((me.getX() / trackLength));
+                boolean created;
+
+                if (isHorizontal()) {
+                    created = getBehavior().rangeBarPressed((me.getX() / trackLength));
+                } else {
+                    created = getBehavior().rangeBarPressed((me.getY() / trackLength));
+                }
+
+                if(created) {
+                    initThumbs(new ThumbRange(i));
+                }
+
             } else {
-                getBehavior().rangeBarPressed((me.getY() / trackLength));
+                currentId.setValue(t.id);
+                getBehavior().rangeBarPressedSecondary();
+                getChildren().remove(getCurrentThumb().high);
+                getChildren().remove(getCurrentThumb().low);
+                getChildren().remove(getCurrentThumb().rangeBar);
+                thumbs.remove(getCurrentThumb());
             }
         });
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-    private ThumbRange getCurrentThumb() {
-        return thumbs.get(currentId.get());
-    }
 
     private void positionLowThumb() {
         MultiRange s = getSkinnable();
@@ -205,7 +204,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         MultiRange s = getSkinnable();
         int prevVal = currentId.get();
 
-        for(int i = 0; i < thumbs.size(); i++) {
+        for (int i = 0; i < thumbs.size(); i++) {
             currentId.setValue(i);
 
             double lxl = trackStart + (trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
@@ -228,7 +227,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         currentId.setValue(prevVal);
     }
 
-
     private void initTrack() {
         track = new StackPane();
         track.getStyleClass().setAll("track");
@@ -239,7 +237,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         track.setOnMousePressed(me -> {
             int index = getNextId();
             currentId.setValue(index);
-            initThumbs(new ThumbRange(), index);
+            initThumbs(new ThumbRange(index));
 
             if (isHorizontal()) {
                 getBehavior().trackPress(me, (me.getX() / trackLength));
@@ -247,45 +245,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 getBehavior().trackPress(me, (me.getY() / trackLength));
             }
         });
-    }
-
-    private int getNextId() {
-        return id++;
-    }
-
-    private static class ThumbPane extends StackPane {
-        public void setFocus(boolean value) {
-            setFocused(value);
-        }
-    }
-
-    private static class ThumbRange {
-        ThumbPane low;
-        ThumbPane high;
-        StackPane rangeBar;
-
-        ThumbRange() {
-            low = new ThumbPane();
-            low.getStyleClass().setAll("low-thumb");
-            low.setFocusTraversable(true);
-
-            high = new ThumbPane();
-            high.getStyleClass().setAll("low-thumb");
-            high.setFocusTraversable(true);
-
-            rangeBar = new StackPane();
-            rangeBar.getStyleClass().setAll("range-bar");
-        }
-    }
-
-    /**
-     * @return the difference between max and min, but if they have the same
-     * value, 1 is returned instead of 0 because otherwise the division where it
-     * can be used will return Nan.
-     */
-    private double getMaxMinusMinNoZero() {
-        MultiRange s = getSkinnable();
-        return s.getMax() - s.getMin() == 0 ? 1 : s.getMax() - s.getMin();
     }
 
     @Override
@@ -304,7 +263,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double tickLineHeight = (showTickMarks) ? tickLine.prefHeight(-1) : 0;
         double trackHeight = track.prefHeight(-1);
         double trackAreaHeight = Math.max(trackHeight, thumbHeight);
-        double totalHeightNeeded = trackAreaHeight  + ((showTickMarks) ? trackToTickGap+tickLineHeight : 0);
+        double totalHeightNeeded = trackAreaHeight + ((showTickMarks) ? trackToTickGap + tickLineHeight : 0);
         double startY = y + ((h - totalHeightNeeded) / 2); // center slider in available height vertically
 
         trackLength = w - thumbWidth;
@@ -320,12 +279,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         if (showTickMarks) {
             tickLine.setLayoutX(trackStart);
-            tickLine.setLayoutY(trackTop+trackHeight+trackToTickGap);
+            tickLine.setLayoutY(trackTop + trackHeight + trackToTickGap);
             tickLine.resize(trackLength, tickLineHeight);
             tickLine.requestAxisLayout();
         } else {
             if (tickLine != null) {
-                tickLine.resize(0,0);
+                tickLine.resize(0, 0);
                 tickLine.requestAxisLayout();
             }
             tickLine = null;
@@ -342,7 +301,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 tickLine.setSide(isHorizontal() ? Side.BOTTOM : Side.RIGHT);
             }
             getSkinnable().requestLayout();
-        } else if ("MIN".equals(p) ) { //$NON-NLS-1$
+        } else if ("MIN".equals(p)) { //$NON-NLS-1$
             if (showTickMarks && tickLine != null) {
                 tickLine.setLowerBound(getSkinnable().getMin());
             }
@@ -354,7 +313,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             getSkinnable().requestLayout();
         } else if ("SHOW_TICK_MARKS".equals(p) || "SHOW_TICK_LABELS".equals(p)) { //$NON-NLS-1$ //$NON-NLS-2$
             setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
-        }  else if ("MAJOR_TICK_UNIT".equals(p)) { //$NON-NLS-1$
+        } else if ("MAJOR_TICK_UNIT".equals(p)) { //$NON-NLS-1$
             if (tickLine != null) {
                 tickLine.setTickUnit(getSkinnable().getMajorTickUnit());
                 getSkinnable().requestLayout();
@@ -365,6 +324,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 getSkinnable().requestLayout();
             }
         } else if ("RANGES".equals(p)) {
+            // TODO
             positionLowThumb();
             positionHighThumb();
             getSkinnable().valueChangingProperty().setValue(false);
@@ -374,39 +334,106 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         super.handleControlPropertyChanged(p);
     }
 
+    /**
+     * Each time a new id is requested the count is updated to +1.
+     *
+     * @return the value of the next id
+     */
+    private int getNextId() {
+        return id++;
+    }
+
+    /**
+     * Get the current ThumbRange.
+     *
+     * @return the current thumbRange
+     */
+    private ThumbRange getCurrentThumb() {
+        for(ThumbRange thumbRange: thumbs) {
+            if(thumbRange.id == currentId.get()) {
+                return thumbRange;
+            }
+        }
+        return new ThumbRange(-1);
+    }
+
+    /**
+     * @return the difference between max and min, but if they have the same
+     * value, 1 is returned instead of 0 because otherwise the division where it
+     * can be used will return Nan.
+     */
+    private double getMaxMinusMinNoZero() {
+        MultiRange s = getSkinnable();
+        return s.getMax() - s.getMin() == 0 ? 1 : s.getMax() - s.getMin();
+    }
+
     private double minTrackLength() {
         return 2 * getCurrentThumb().low.prefWidth(-1);
     }
 
     @Override
     protected double computeMinWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return (leftInset + minTrackLength() + getCurrentThumb().low.minWidth(-1) + rightInset);
+        if (isHorizontal()) {
+            return (leftInset + minTrackLength() + getCurrentThumb().low.minWidth(-1) + rightInset);
+        } else {
+            return (leftInset + getCurrentThumb().low.prefWidth(-1) + rightInset);
+        }
     }
 
     @Override
     protected double computeMinHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return (topInset + getCurrentThumb().low.prefHeight(-1) + bottomInset);
+        if (isHorizontal()) {
+            return (topInset + getCurrentThumb().low.prefHeight(-1) + bottomInset);
+        } else {
+            return (topInset + minTrackLength() + getCurrentThumb().low.prefHeight(-1) + bottomInset);
+        }
     }
 
     @Override
     protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return 140;
+        if (isHorizontal()) {
+            if (showTickMarks) {
+                return Math.max(140, tickLine.prefWidth(-1));
+            } else {
+                return 140;
+            }
+        } else {
+            //return (padding.getLeft()) + Math.max(thumb.prefWidth(-1), track.prefWidth(-1)) + padding.getRight();
+            return leftInset + Math.max(getCurrentThumb().low.prefWidth(-1), track.prefWidth(-1)) +
+                    ((showTickMarks) ? (trackToTickGap + tickLine.prefWidth(-1)) : 0) + rightInset;
+        }
     }
 
     @Override
     protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return getSkinnable().getInsets().getTop() + Math.max(getCurrentThumb().low.prefHeight(-1), track.prefHeight(-1)) + (0) + bottomInset;
+        if (isHorizontal()) {
+            return getSkinnable().getInsets().getTop() + Math.max(getCurrentThumb().low.prefHeight(-1), track.prefHeight(-1)) +
+                    ((showTickMarks) ? (trackToTickGap + tickLine.prefHeight(-1)) : 0) + bottomInset;
+        } else {
+            if (showTickMarks) {
+                return Math.max(140, tickLine.prefHeight(-1));
+            } else {
+                return 140;
+            }
+        }
     }
 
     @Override
     protected double computeMaxWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return Double.MAX_VALUE;
-
+        if (isHorizontal()) {
+            return Double.MAX_VALUE;
+        } else {
+            return getSkinnable().prefWidth(-1);
+        }
     }
 
     @Override
     protected double computeMaxHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {
-        return getSkinnable().prefHeight(width);
+        if (isHorizontal()) {
+            return getSkinnable().prefHeight(width);
+        } else {
+            return Double.MAX_VALUE;
+        }
     }
 
     private boolean isHorizontal() {
@@ -440,7 +467,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 // add 1 to the slider minor tick count since the axis draws one
                 // less minor ticks than the number given.
                 tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(), 0) + 1);
-//                getChildren().clear();
+//                getChildren().clear();    // TODO
                 getChildren().addAll(tickLine);
             } else {
                 tickLine.setTickLabelsVisible(labelsVisible);
@@ -448,12 +475,39 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 tickLine.setMinorTickVisible(ticksVisible);
             }
         } else {
-//            getChildren().clear();
+//            getChildren().clear();    // TODO
 //            getChildren().addAll(track);
 //            tickLine = null;
         }
 
         getSkinnable().requestLayout();
+    }
+
+    private static class ThumbPane extends StackPane {
+        void setFocus(boolean value) {
+            setFocused(value);
+        }
+    }
+
+    private static class ThumbRange {
+        int id;
+        ThumbPane low;
+        ThumbPane high;
+        StackPane rangeBar;
+
+        ThumbRange(int id) {
+            this.id = id;
+            low = new ThumbPane();
+            low.getStyleClass().setAll("low-thumb");
+            low.setFocusTraversable(true);
+
+            high = new ThumbPane();
+            high.getStyleClass().setAll("low-thumb");
+            high.setFocusTraversable(true);
+
+            rangeBar = new StackPane();
+            rangeBar.getStyleClass().setAll("range-bar");
+        }
     }
 
 }
