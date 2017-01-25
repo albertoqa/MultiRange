@@ -38,10 +38,7 @@ import javafx.util.StringConverter;
 import multirange.behavior.MultiRangeBehavior;
 import multirange.skin.MultiRangeSkin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by alberto on 09/01/2017.
@@ -79,9 +76,9 @@ public class MultiRange extends Control {
      *                                                                         *
      **************************************************************************/
 
-    private List<Range> ranges = new ArrayList<>();
-    private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);
-    private BooleanProperty valueChanging;
+    private List<Range> ranges = new ArrayList<>();     // ranges in the slider
+    private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);  // id of the thumb pressed
+    private BooleanProperty valueChanging;      // whether a value has changed or not
 
 
     /***************************************************************************
@@ -124,15 +121,6 @@ public class MultiRange extends Control {
 
             // need to remove and insert to notify of a change in an element of the list
             //ranges.set(index, null);
-            ranges.set(index, range);
-            valueChangingProperty().setValue(true);
-        }
-    }
-
-    public void updateRange(Range range) {
-        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
-        if (rangeOptional.isPresent()) {
-            int index = ranges.indexOf(rangeOptional.get());
             ranges.set(index, range);
             valueChangingProperty().setValue(true);
         }
@@ -183,8 +171,19 @@ public class MultiRange extends Control {
         return true;
     }
 
+    public void removeSelectedRange() {
+        for (Iterator<Range> i = ranges.iterator(); i.hasNext();) {
+            Range item = i.next();
+            if (item.getId() == currentRangeId.get()) {
+                i.remove();
+                break;
+            }
+        }
+    }
+
     public Range getRangeForPosition(double newPosition) {
-        return ranges.stream().filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny().get();
+        // TODO
+        return ranges.stream().filter(r -> r.getLow() > newPosition && r.getHigh() < newPosition).findAny().get();
     }
 
     public double getSpaceToRightRange(double newPosition) {
@@ -200,6 +199,15 @@ public class MultiRange extends Control {
      * Public methods                                                          *
      *                                                                         *
      **************************************************************************/
+
+    public void updateRange(Range range) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            int index = ranges.indexOf(rangeOptional.get());
+            ranges.set(index, range);
+            valueChangingProperty().setValue(true);
+        }
+    }
 
     public int getCurrentRangeId() {
         return currentRangeId.get();
@@ -439,7 +447,7 @@ public class MultiRange extends Control {
                 @Override
                 public void invalidated() {
                     if (get() <= 0) {
-                        throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0."); 
+                        throw new IllegalArgumentException("MajorTickUnit cannot be less than or equal to 0.");
                     }
                 }
 
@@ -503,7 +511,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "minorTickCount"; 
+                    return "minorTickCount";
                 }
             };
         }
@@ -555,7 +563,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "orientation"; 
+                    return "orientation";
                 }
             };
         }
@@ -600,7 +608,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "showTickLabels"; 
+                    return "showTickLabels";
                 }
             };
         }
@@ -642,7 +650,7 @@ public class MultiRange extends Control {
 
                 @Override
                 public String getName() {
-                    return "showTickMarks"; 
+                    return "showTickMarks";
                 }
             };
         }
@@ -718,7 +726,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Boolean> SHOW_TICK_MARKS =
-                new CssMetaData<MultiRange, Boolean>("-fx-show-tick-marks", 
+                new CssMetaData<MultiRange, Boolean>("-fx-show-tick-marks",
                         BooleanConverter.getInstance(), Boolean.FALSE) {
 
                     @Override
@@ -734,7 +742,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Boolean> SNAP_TO_TICKS =
-                new CssMetaData<MultiRange, Boolean>("-fx-snap-to-ticks", 
+                new CssMetaData<MultiRange, Boolean>("-fx-snap-to-ticks",
                         BooleanConverter.getInstance(), Boolean.FALSE) {
 
                     @Override
@@ -750,7 +758,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Number> MAJOR_TICK_UNIT =
-                new CssMetaData<MultiRange, Number>("-fx-major-tick-unit", 
+                new CssMetaData<MultiRange, Number>("-fx-major-tick-unit",
                         SizeConverter.getInstance(), 25.0) {
 
                     @Override
@@ -766,7 +774,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Number> MINOR_TICK_COUNT =
-                new CssMetaData<MultiRange, Number>("-fx-minor-tick-count", 
+                new CssMetaData<MultiRange, Number>("-fx-minor-tick-count",
                         SizeConverter.getInstance(), 3.0) {
 
                     @SuppressWarnings("deprecation")
@@ -788,7 +796,7 @@ public class MultiRange extends Control {
                 };
 
         private static final CssMetaData<MultiRange, Orientation> ORIENTATION =
-                new CssMetaData<MultiRange, Orientation>("-fx-orientation", 
+                new CssMetaData<MultiRange, Orientation>("-fx-orientation",
                         new EnumConverter<>(Orientation.class),
                         Orientation.HORIZONTAL) {
 
