@@ -133,8 +133,9 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      * of the second one the high value of the original range.
      *
      * @param position clicked position
+     * @return true if range can be created
      */
-    public void rangeBarPressed(double position) {
+    public boolean rangeBarPressed(double position) {
         final MultiRange multiRange = getControl();
 
         // If not already focused, request focus
@@ -167,8 +168,10 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
                 r.setHigh(newPosition - SPACE_MIN);
                 multiRange.createNewRange(newPosition + SPACE_MIN, currentHigh);
             }
+            return true;
         } else {
             // no range will be created
+            return false;
         }
     }
 
