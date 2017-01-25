@@ -43,6 +43,11 @@ import java.util.List;
  */
 public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
+    private static final double SPACE_HIGH = 0.2;
+    private static final double SPACE_LOW = 0.02;
+    private static final double SPACE_MIN = 0.01;
+    private static final double MIN_SPACE = 0.3;
+
     private static final List<KeyBinding> MULTI_RANGE_BINDINGS = new ArrayList<>();
 
     public MultiRangeBehavior(MultiRange control) {
@@ -84,42 +89,51 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
         }
 
-        /**
+        /*
          * Suppose a slider as follows:
          * |--------L-------------H------------|
          * Where L is the position of the lowest value and H is the high value of the range.
          * c will be the position of the click.
          */
 
-        /**
+        /*
          * |--c-----L-------------H------------|
-         * If there is enough space between the clicked position and a +__ position, just create that range.
+         * If there is enough space between the clicked position and a +MIN_SPACE position, just create that range.
          * |--L----H--L-------------H-----------|
          */
-        if (multiRange.getSpaceToRightRange(newPosition) > 5) {
-
+        if (multiRange.getSpaceToRightRange(newPosition) > MIN_SPACE) {
+            multiRange.createNewRange(newPosition, newPosition + MIN_SPACE);
         }
 
-        /**
+        /*
          * |------c-L-------------H------------|
-         * If there is enough space between the clicked position and a -__ position, just create that range.
+         * If there is enough space between the clicked position and a -MIN_SPACE position, just create that range.
          * |--L----H-L-------------H-----------|
          */
-        else if (multiRange.getSpaceToLeftRange(newPosition) > 5) {
-
+        else if (multiRange.getSpaceToLeftRange(newPosition) > MIN_SPACE) {
+            multiRange.createNewRange(newPosition - MIN_SPACE, newPosition);
         }
 
-        /**
+        /*
          * |--------L-------------H------------|
-         * If there is not enough space to place a new range with a difference of __, then place a new one
-         * with a difference of only __.
+         * If there is not enough space to place a new range with a difference of MIN_SPACE, then place a new one
+         * with a difference of only SPACE_MIN.
          */
         else {
-
+            multiRange.createNewRange(newPosition - SPACE_MIN, newPosition + SPACE_MIN);
         }
 
     }
 
+    /**
+     * Handle the situation when the user press a rangeBar. In this case we will try to split the current range
+     * and create two smaller ranges with the min position of the first one being the same min position of the
+     * original range, the high position of the first one just a little bit less than the clicked position, the
+     * min position of the second one will be just a little more than the clicked position and the max position
+     * of the second one the high value of the original range.
+     *
+     * @param position clicked position
+     */
     public void rangeBarPressed(double position) {
         final MultiRange multiRange = getControl();
 
@@ -138,36 +152,58 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         /*
          * |--------L------c------H------------|
          * If the click position is in between a range, the H value of the range which has been clicked over
-         * will be changed to __ less than the clicked position. A new range will be created with values
-         * [clicked position + __, H].
+         * will be changed to SPACE_HIGH less than the clicked position. A new range will be created with values
+         * [clicked position + SPACE_HIGH, H].
          * |--------L-----H-L------H------------|
          */
         Range r = multiRange.getRangeForPosition(newPosition);
         double currentHigh = r.getHigh();
-        if (r.getAmplitude() > 0.2) {
-            if (r.getLow() > newPosition - 0.02) {
-                r.setHigh(newPosition - 0.02);
+        if (r.getAmplitude() > SPACE_HIGH) {
+            if (r.getLow() > newPosition - SPACE_LOW) {
+                r.setHigh(newPosition - SPACE_LOW);
                 multiRange.updateRange(r);
-                multiRange.createNewRange(newPosition + 0.02, currentHigh);
+                multiRange.createNewRange(newPosition + SPACE_LOW, currentHigh);
             } else {
-                r.setHigh(newPosition - 0.01);
-                multiRange.createNewRange(newPosition + 0.01, currentHigh);
+                r.setHigh(newPosition - SPACE_MIN);
+                multiRange.createNewRange(newPosition + SPACE_MIN, currentHigh);
             }
+        } else {
+            // no range will be created
         }
-
     }
 
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *                 track and 1.0 being the end
+     */
     public void lowThumbDragged(double position) {
         getControl().setLowRangeValue(getNewPosition(position));
     }
 
-    public void highThumbDragged(MouseEvent e, double position) {
+    /**
+     * @param position The mouse position on track with 0.0 being beginning of
+     *                 track and 1.0 being the end
+     */
+    public void highThumbDragged(double position) {
         getControl().setHighRangeValue(getNewPosition(position));
     }
 
+    /**
+     * Calculate the new position of the thumb given the clicked/dragged position
+     *
+     * @param position clicked position
+     * @return new position
+     */
     private double getNewPosition(double position) {
         final MultiRange multiRange = getControl();
         return Utils.clamp(multiRange.getMin(), (position * (multiRange.getMax() - multiRange.getMin())) + multiRange.getMin(), multiRange.getMax());
+    }
+
+    /**
+     * Handle secondary button press over a range bar. In this case the clicked range will be deleted.
+     */
+    public void rangeBarPressedSecondary() {
+        getControl().removeSelectedRange();
     }
 
 }
