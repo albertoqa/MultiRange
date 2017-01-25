@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import multirange.MultiRange;
 
+import java.util.Date;
+
 /**
  * Created by alberto on 10/12/2016.
  */
@@ -14,11 +16,15 @@ public class MultiRangeSample extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        MultiRange multiRange = new MultiRange(0, 100);
-        multiRange.setShowTickLabels(true);
+        MultiRange multiRange = new MultiRange();
+
+        multiRange.setMax(20);
+        multiRange.setMin(0);
+        //multiRange.setLabelFormatter(new DateStringConverter(true));   // timeFormat
         multiRange.setShowTickMarks(true);
+        multiRange.setShowTickLabels(true);
         multiRange.setMinorTickCount(10);
-        multiRange.setSnapToTicks(true);
+        multiRange.setMajorTickUnit(2);
 
         primaryStage.setScene(new Scene(multiRange));
         primaryStage.show();
