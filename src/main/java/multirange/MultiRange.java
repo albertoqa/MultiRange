@@ -107,25 +107,63 @@ public class MultiRange extends Control {
      *                                                                         *
      * Private methods                                                         *
      *                                                                         *
+     * There are some duplicate methods: one is using streams just to learn    *
+     * and practise...                                                         *
+     * The "no streams" version may be faster!                                 *
+     *                                                                         *
      **************************************************************************/
 
+    /**
+     * Set a new value for the low/high side of the current range. Before setting the value some checks will be
+     * performed to assure that the new value is valid.
+     *
+     * @param newValue new value of the low/high range
+     * @param isLow    whether the updating value is a low or a high
+     * @see #setValueNS(double, boolean) for a version without streams (may be faster...)
+     */
     private void setValue(double newValue, boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
             Range range = rangeOptional.get();
-            int index = ranges.indexOf(range);
             double value = snapValueToTicks(newValue);
 
-            if (isLow && isValidValue(true, range, value)) range.setLow(value);
-            else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
+            if (isLow && isValidValue(true, range, value)) {
+                range.setLow(value);
+            } else if (!isLow && isValidValue(false, range, value)) {
+                range.setHigh(value);
+            }
 
-            // need to remove and insert to notify of a change in an element of the list
-            //ranges.set(index, null);
-            ranges.set(index, range);
             valueChangingProperty().setValue(true);
         }
     }
 
+    /**
+     * Works like {@link #setValue(double, boolean)} function without using streams.
+     */
+    private void setValueNS(double newValue, boolean isLow) {
+        for (Range range : ranges) {
+            if (range.getId() == currentRangeId.get()) {
+                double value = snapValueToTicks(newValue);
+                if (isLow && isValidValue(true, range, value)) range.setLow(value);
+                else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
+                valueChangingProperty().setValue(true);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Check if the new value is valid for the given range. A value is valid when:
+     * - the low value is lower than the high value
+     * - if the updating value is a low: the new value cannot be lower than its left high value (if exists)
+     * - if the updating value is a high: the new value cannot be higher than its right low value (if exists)
+     *
+     * @param isLow    whether the updating value is a low or a high
+     * @param range    range being modified
+     * @param newValue new value of the low/high range
+     * @return whether is a valid value or not
+     * @see #isValidValueNS(boolean, Range, double) for a version without streams (may be faster...)
+     */
     private boolean isValidValue(boolean isLow, Range range, double newValue) {
         if (isLow && newValue < range.getHigh()) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
@@ -141,15 +179,65 @@ public class MultiRange extends Control {
         return false;
     }
 
+    /**
+     * Works like {@link #isValidValue(boolean, Range, double)} function without using streams.
+     */
+    private boolean isValidValueNS(boolean isLow, Range range, double newValue) {
+        if (isLow && newValue < range.getHigh()) {
+            for (Range r : ranges) {
+                if (r.getId() != range.getId() && r.getHigh() < range.getHigh() && r.getHigh() >= newValue) {
+                    return false;
+                }
+            }
+        } else if (!isLow && range.getLow() < newValue) {
+            for (Range r : ranges) {
+                if (r.getId() != range.getId() && r.getLow() > range.getHigh() && r.getLow() <= newValue) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get the low/high value of the range currently selected.
+     *
+     * @param isLow whether the value to retrieve is the low or the high
+     * @return the value
+     * @see #getValueNS(boolean) for a version without streams (may be faster...)
+     */
     private double getValue(boolean isLow) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
-            if (isLow) return rangeOptional.get().getLow();
-            else return rangeOptional.get().getHigh();
+            if (isLow) {
+                return rangeOptional.get().getLow();
+            } else {
+                return rangeOptional.get().getHigh();
+            }
         }
         return -1;
     }
 
+    /**
+     * Works like {@link #getValue(boolean)} function without using streams.
+     */
+    private double getValueNS(boolean isLow) {
+        for (Range range : ranges) {
+            if (range.getId() == currentRangeId.get()) {
+                if (isLow) {
+                    return range.getLow();
+                } else {
+                    return range.getHigh();
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * @param d
+     * @return
+     */
     private double snapValueToTicks(double d) {
         double d1 = d;
         if (isSnapToTicks()) {
@@ -167,12 +255,19 @@ public class MultiRange extends Control {
         return Utils.clamp(getMin(), d1, getMax());
     }
 
+    /**
+     * @param newPosition
+     * @return
+     */
     public boolean isInBetweenRange(double newPosition) {
         return true;
     }
 
+    /**
+     *
+     */
     public void removeSelectedRange() {
-        for (Iterator<Range> i = ranges.iterator(); i.hasNext();) {
+        for (Iterator<Range> i = ranges.iterator(); i.hasNext(); ) {
             Range item = i.next();
             if (item.getId() == currentRangeId.get()) {
                 i.remove();
