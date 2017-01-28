@@ -97,6 +97,9 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         getSkinnable().currentRangeIdProperty().bind(currentId);
     }
 
+    /**
+     * Set up the initial thumbs. There has to be always at least two thumbs on the slider.
+     */
     private void initInitialThumbs() {
         thumbs = new ArrayList<>();
         ThumbRange initialThumbs = new ThumbRange(getNextId());
@@ -104,18 +107,25 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         setShowTickMarks(getSkinnable().isShowTickMarks(), getSkinnable().isShowTickLabels());
     }
 
+    /**
+     * Init the given thumbs and add them to the view.
+     *
+     * @param t thumbRange
+     */
     private void initThumbs(ThumbRange t) {
         thumbs.add(t);
 
         getChildren().addAll(t.low, t.high, t.rangeBar);
 
         t.low.setOnMousePressed(me -> {
-            // TODO clear other focus
             t.low.setFocus(true);
             currentId.setValue(t.id);
             preDragThumbPoint = t.low.localToParent(me.getX(), me.getY());
             preDragPos = (getSkinnable().getLowValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
+
+        t.low.setOnDragOver(me -> t.low.setFocus(false));
+        t.low.setOnMouseReleased(me -> t.low.setFocus(false));
 
         t.low.setOnMouseDragged(me -> {
             Point2D cur = t.low.localToParent(me.getX(), me.getY());
@@ -124,12 +134,14 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         });
 
         t.high.setOnMousePressed(me -> {
-            // TODO clear other focus
             t.high.setFocus(true);
             currentId.setValue(t.id);
             preDragThumbPoint = t.high.localToParent(me.getX(), me.getY());
             preDragPos = (getSkinnable().getHighValue() - getSkinnable().getMin()) / (getMaxMinusMinNoZero());
         });
+
+        t.high.setOnMouseReleased(me -> t.high.setFocus(false));
+        t.high.setOnDragOver(me -> t.high.setFocus(false));
 
         t.high.setOnMouseDragged(me -> {
             boolean orientation = getSkinnable().getOrientation() == Orientation.HORIZONTAL;
@@ -140,6 +152,10 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
         });
 
+        /*
+         * On primary button click add a new range to the slider.
+         * On secondary button click delete the range.
+         */
         t.rangeBar.setOnMousePressed(me -> {
             if (me.isPrimaryButtonDown()) {
                 int i = getNextId();
@@ -148,85 +164,34 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 boolean created;
 
                 if (isHorizontal()) {
-                    created = getBehavior().rangeBarPressed((me.getX() / trackLength));
+                    created = getBehavior().rangeBarPressed((me.getX() / trackLength), t.id);
                 } else {
-                    created = getBehavior().rangeBarPressed((me.getY() / trackLength));
+                    created = getBehavior().rangeBarPressed((me.getY() / trackLength), t.id);
                 }
 
-                if(created) {
+                if (created) {
                     initThumbs(new ThumbRange(i));
                 }
-
             } else {
                 currentId.setValue(t.id);
-                getBehavior().rangeBarPressedSecondary();
-                getChildren().remove(getCurrentThumb().high);
-                getChildren().remove(getCurrentThumb().low);
-                getChildren().remove(getCurrentThumb().rangeBar);
-                thumbs.remove(getCurrentThumb());
+                boolean isDeleted = getBehavior().rangeBarPressedSecondary();
+                if (isDeleted) {
+                    ThumbRange currentTr = getCurrentThumb();
+                    if (currentTr != null) {
+                        getChildren().remove(currentTr.high);
+                        getChildren().remove(currentTr.low);
+                        getChildren().remove(currentTr.rangeBar);
+                        thumbs.remove(currentTr);
+                    }
+                }
             }
         });
     }
 
-
-    private void positionLowThumb() {
-        MultiRange s = getSkinnable();
-        double lx = trackStart + (((trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero()))) - thumbWidth / 2));
-        double ly = lowThumbPos;
-
-        ThumbPane low = getCurrentThumb().low;
-
-        low.setLayoutX(lx);
-        low.setLayoutY(ly);
-    }
-
-    private void positionHighThumb() {
-        MultiRange s = getSkinnable();
-
-        double thumbWidth = getCurrentThumb().low.getWidth();
-        double thumbHeight = getCurrentThumb().low.getHeight();
-        getCurrentThumb().high.resize(thumbWidth, thumbHeight);
-
-        double trackStart = track.getLayoutX();
-        double trackLength = track.getWidth();
-
-        trackLength -= 2;
-        double lx = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
-        double ly = getCurrentThumb().low.getLayoutY();
-
-        ThumbPane high = getCurrentThumb().high;
-
-        high.setLayoutX(lx);
-        high.setLayoutY(ly);
-    }
-
-    private void positionAllThumbs() {
-        MultiRange s = getSkinnable();
-        int prevVal = currentId.get();
-
-        for (int i = 0; i < thumbs.size(); i++) {
-            currentId.setValue(i);
-
-            double lxl = trackStart + (trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
-            double lxh = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
-            double ly = lowThumbPos;
-
-            ThumbRange thumbRange = getCurrentThumb();
-
-            thumbRange.low.setLayoutX(lxl);
-            thumbRange.low.setLayoutY(ly);
-
-            thumbRange.high.setLayoutX(lxh);
-            thumbRange.high.setLayoutY(ly);
-            thumbRange.high.resize(thumbWidth, thumbHeight);
-
-            thumbRange.rangeBar.resizeRelocate(thumbRange.low.getLayoutX() + thumbRange.low.getWidth(), track.getLayoutY(),
-                    thumbRange.high.getLayoutX() - thumbRange.low.getLayoutX() - thumbRange.low.getWidth(), track.getHeight());
-        }
-
-        currentId.setValue(prevVal);
-    }
-
+    /**
+     * Initialize the slider track.
+     * This must be executed before adding all the other components.
+     */
     private void initTrack() {
         track = new StackPane();
         track.getStyleClass().setAll("track");
@@ -234,28 +199,70 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         getChildren().clear();
         getChildren().add(track);
 
+        /*
+         * Try to add a new range on mouse click
+         */
         track.setOnMousePressed(me -> {
             int index = getNextId();
             currentId.setValue(index);
-            initThumbs(new ThumbRange(index));
 
+            boolean isCrated;
             if (isHorizontal()) {
-                getBehavior().trackPress(me, (me.getX() / trackLength));
+                isCrated = getBehavior().trackPress((me.getX() / trackLength));
             } else {
-                getBehavior().trackPress(me, (me.getY() / trackLength));
+                isCrated = getBehavior().trackPress((me.getY() / trackLength));
+            }
+
+            if (isCrated) {
+                initThumbs(new ThumbRange(index));
             }
         });
     }
 
+    /**
+     * Reposition all thumbs and range bars of the view
+     */
+    private void positionAllThumbs() {
+        MultiRange s = getSkinnable();
+        int prevVal = currentId.get();
+
+        for (ThumbRange thumb : thumbs) {
+            currentId.setValue(thumb.id);
+
+            double lxl = trackStart + (trackLength * ((s.getLowValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+            double lxh = trackStart + (trackLength * ((s.getHighValue() - s.getMin()) / (getMaxMinusMinNoZero())) - thumbWidth / 2D);
+            double ly = lowThumbPos;
+
+            ThumbRange thumbRange = getCurrentThumb();
+
+            if (thumbRange != null) {
+                thumbRange.low.setLayoutX(lxl);
+                thumbRange.low.setLayoutY(ly);
+
+                thumbRange.high.setLayoutX(lxh);
+                thumbRange.high.setLayoutY(ly);
+
+                thumbRange.rangeBar.resizeRelocate(thumbRange.low.getLayoutX() + thumbRange.low.getWidth(), track.getLayoutY(),
+                        thumbRange.high.getLayoutX() - thumbRange.low.getLayoutX() - thumbRange.low.getWidth(), track.getHeight());
+            }
+        }
+
+        currentId.setValue(prevVal);
+    }
+
+
     @Override
-    protected void layoutChildren(final double x, final double y,
-                                  final double w, final double h) {
+    protected void layoutChildren(final double x, final double y, final double w, final double h) {
 
-        ThumbPane low = getCurrentThumb().low;
+        ThumbRange thumbRange = getCurrentThumb();
 
-        thumbWidth = low.prefWidth(-1);
-        thumbHeight = low.prefHeight(-1);
-        low.resize(thumbWidth, thumbHeight);
+        if (thumbRange != null) {
+            thumbWidth = thumbRange.low.prefWidth(-1);
+            thumbHeight = thumbRange.low.prefHeight(-1);
+            thumbRange.low.resize(thumbWidth, thumbHeight);
+            thumbRange.high.resize(thumbWidth, thumbHeight);
+        }
+
         // we are assuming the is common radius's for all corners on the track
         double trackRadius = track.getBackground() == null ? 0 : track.getBackground().getFills().size() > 0 ?
                 track.getBackground().getFills().get(0).getRadii().getTopLeftHorizontalRadius() : 0;
@@ -324,12 +331,8 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 getSkinnable().requestLayout();
             }
         } else if ("RANGES".equals(p)) {
-            // TODO
-            positionLowThumb();
-            positionHighThumb();
             getSkinnable().valueChangingProperty().setValue(false);
-            getCurrentThumb().rangeBar.resizeRelocate(getCurrentThumb().low.getLayoutX() + getCurrentThumb().low.getWidth(), track.getLayoutY(),
-                    getCurrentThumb().high.getLayoutX() - getCurrentThumb().low.getLayoutX() - getCurrentThumb().low.getWidth(), track.getHeight());
+            getSkinnable().requestLayout();
         }
         super.handleControlPropertyChanged(p);
     }
@@ -349,12 +352,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
      * @return the current thumbRange
      */
     private ThumbRange getCurrentThumb() {
-        for(ThumbRange thumbRange: thumbs) {
-            if(thumbRange.id == currentId.get()) {
+        for (ThumbRange thumbRange : thumbs) {
+            if (thumbRange.id == currentId.get()) {
                 return thumbRange;
             }
         }
-        return new ThumbRange(-1);
+        return null;
     }
 
     /**

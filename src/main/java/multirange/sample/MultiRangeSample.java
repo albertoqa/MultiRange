@@ -23,8 +23,9 @@ public class MultiRangeSample extends Application {
         //multiRange.setLabelFormatter(new DateStringConverter(true));   // timeFormat
         multiRange.setShowTickMarks(true);
         multiRange.setShowTickLabels(true);
-        multiRange.setMinorTickCount(10);
+        multiRange.setMinorTickCount(2);
         multiRange.setMajorTickUnit(2);
+        multiRange.setSnapToTicks(true);
 
         primaryStage.setScene(new Scene(multiRange));
         primaryStage.show();

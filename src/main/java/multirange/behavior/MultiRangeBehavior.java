@@ -30,7 +30,6 @@ import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.behavior.KeyBinding;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Skin;
-import javafx.scene.input.MouseEvent;
 import multirange.MultiRange;
 import multirange.Range;
 import multirange.Utils;
@@ -43,10 +42,13 @@ import java.util.List;
  */
 public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
-    private static final double SPACE_HIGH = 0.2;
-    private static final double SPACE_LOW = 0.02;
-    private static final double SPACE_MIN = 0.01;
-    private static final double MIN_SPACE = 0.3;
+    private double SPACE_HIGH = 0.2;
+    private double SPACE_LOW = 0.02;
+    private double SPACE_MIN = 0.01;
+
+    private double minSpace;
+    private double padding;
+    private double separation;
 
     private static final List<KeyBinding> MULTI_RANGE_BINDINGS = new ArrayList<>();
 
@@ -63,6 +65,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      */
     private MultiRangeBehavior(MultiRange control, List<KeyBinding> keyBindings) {
         super(control, keyBindings);
+        setSpaces(0.5);
     }
 
     /**
@@ -72,7 +75,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      * @param position The mouse position on track with 0.0 being beginning of
      *                 track and 1.0 being the end
      */
-    public void trackPress(MouseEvent e, double position) {
+    public boolean trackPress(double position) {
         // determine the percentage of the way between min and max
         // represented by this mouse event
         final MultiRange multiRange = getControl();
@@ -96,33 +99,46 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
          * c will be the position of the click.
          */
 
+        double spaceToRight = multiRange.getSpaceToRightRange(newPosition);
+        double spaceToLeft = multiRange.getSpaceToLeftRange(newPosition);
+
+        //System.out.println("MinSpace: " + minSpace + "   Right: " + spaceToRight + "   Left: " + spaceToLeft);
+
         /*
          * |--c-----L-------------H------------|
-         * If there is enough space between the clicked position and a +MIN_SPACE position, just create that range.
+         * If there is enough space between the clicked position and a +minSpace position, just create that range.
          * |--L----H--L-------------H-----------|
          */
-        if (multiRange.getSpaceToRightRange(newPosition) > MIN_SPACE) {
-            multiRange.createNewRange(newPosition, newPosition + MIN_SPACE);
+        if (spaceToRight > minSpace) {
+            multiRange.createNewRange(newPosition + padding, newPosition + separation - padding);
         }
 
         /*
          * |------c-L-------------H------------|
-         * If there is enough space between the clicked position and a -MIN_SPACE position, just create that range.
+         * If there is enough space between the clicked position and a -minSpace position, just create that range.
          * |--L----H-L-------------H-----------|
          */
-        else if (multiRange.getSpaceToLeftRange(newPosition) > MIN_SPACE) {
-            multiRange.createNewRange(newPosition - MIN_SPACE, newPosition);
+        else if (spaceToLeft > minSpace) {
+            multiRange.createNewRange(newPosition - separation + padding, newPosition - padding);
         }
 
         /*
          * |--------L-------------H------------|
-         * If there is not enough space to place a new range with a difference of MIN_SPACE, then place a new one
+         * If there is not enough space to place a new range with a difference of minSpace, then place a new one
          * with a difference of only SPACE_MIN.
          */
-        else {
-            multiRange.createNewRange(newPosition - SPACE_MIN, newPosition + SPACE_MIN);
+        else if (spaceToRight + spaceToLeft > minSpace) {
+            multiRange.createNewRange(newPosition - spaceToLeft + padding, newPosition + spaceToRight - padding);
         }
 
+        /*
+         * Otherwise the range cannot be created
+         */
+        else {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -133,15 +149,19 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      * of the second one the high value of the original range.
      *
      * @param position clicked position
+     * @param id       id of the pressed range bar
      * @return true if range can be created
      */
-    public boolean rangeBarPressed(double position) {
+    public boolean rangeBarPressed(double position, int id) {
         final MultiRange multiRange = getControl();
 
         // If not already focused, request focus
         if (!multiRange.isFocused()) {
             multiRange.requestFocus();
         }
+
+        Range range = multiRange.getRange(id);
+        if (range == null) return false;
 
         double newPosition;
         if (multiRange.getOrientation().equals(Orientation.HORIZONTAL)) {
@@ -150,6 +170,8 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
         }
 
+        newPosition = newPosition + range.getLow();
+
         /*
          * |--------L------c------H------------|
          * If the click position is in between a range, the H value of the range which has been clicked over
@@ -157,17 +179,11 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
          * [clicked position + SPACE_HIGH, H].
          * |--------L-----H-L------H------------|
          */
-        Range r = multiRange.getRangeForPosition(newPosition);
-        double currentHigh = r.getHigh();
-        if (r.getAmplitude() > SPACE_HIGH) {
-            if (r.getLow() > newPosition - SPACE_LOW) {
-                r.setHigh(newPosition - SPACE_LOW);
-                multiRange.updateRange(r);
-                multiRange.createNewRange(newPosition + SPACE_LOW, currentHigh);
-            } else {
-                r.setHigh(newPosition - SPACE_MIN);
-                multiRange.createNewRange(newPosition + SPACE_MIN, currentHigh);
-            }
+        double currentHigh = range.getHigh();
+        if (range.getAmplitude() > minSpace * 2) {
+            range.setHigh(newPosition - padding);
+            multiRange.updateRange(range);
+            multiRange.createNewRange(newPosition + padding, currentHigh);
             return true;
         } else {
             // no range will be created
@@ -205,8 +221,16 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
     /**
      * Handle secondary button press over a range bar. In this case the clicked range will be deleted.
      */
-    public void rangeBarPressedSecondary() {
-        getControl().removeSelectedRange();
+    public boolean rangeBarPressedSecondary() {
+        return getControl().removeSelectedRange();
+    }
+
+    private void setSpaces(double thumbWidth) {
+        double total = getControl().getMax() - getControl().getMin();
+        System.out.println("Total: " + total);
+        minSpace = thumbWidth + (total / 20);
+        separation = total / 20;
+        padding = thumbWidth;
     }
 
 }
