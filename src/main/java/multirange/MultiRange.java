@@ -265,17 +265,20 @@ public class MultiRange extends Control {
     /**
      * Remove the currently selected range!
      * If only one range is set then it cannot be removed.
+     *
+     * @return true if any range has been removed
      */
-    public void removeSelectedRange() {
+    public boolean removeSelectedRange() {
         if (ranges.size() > 1) {
             for (Iterator<Range> i = ranges.iterator(); i.hasNext(); ) {
                 Range item = i.next();
                 if (item.getId() == currentRangeId.get()) {
                     i.remove();
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     /**
@@ -310,7 +313,7 @@ public class MultiRange extends Control {
      * @return distance to the low value of its closest right range
      */
     public double getSpaceToRightRange(double newPosition) {
-        Range closestRightRange = ranges.get(0);
+        Range closestRightRange = getTopRightRange();
         boolean found = false;
         for (Range r : ranges) {
             if (r.getLow() >= newPosition && r.getLow() <= closestRightRange.getLow()) {
@@ -323,7 +326,22 @@ public class MultiRange extends Control {
             return closestRightRange.getLow() - newPosition;
         }
 
-        return getMax();
+        return getMax() - newPosition;
+    }
+
+    /**
+     * Get the top right range (the highest range)
+     *
+     * @return the highest range
+     */
+    private Range getTopRightRange() {
+        Range topRightRange = ranges.get(0);
+        for (Range range : ranges) {
+            if (range.getHigh() > topRightRange.getHigh()) {
+                topRightRange = range;
+            }
+        }
+        return topRightRange;
     }
 
     /**
@@ -333,7 +351,7 @@ public class MultiRange extends Control {
      * @return distance to the high value of its closest left range
      */
     public double getSpaceToLeftRange(double newPosition) {
-        Range closestLeftRange = ranges.get(0);
+        Range closestLeftRange = getTopLeftRange();
         boolean found = false;
         for (Range r : ranges) {
             if (r.getHigh() <= newPosition && r.getHigh() >= closestLeftRange.getHigh()) {
@@ -346,7 +364,22 @@ public class MultiRange extends Control {
             return newPosition - closestLeftRange.getHigh();
         }
 
-        return getMax();
+        return newPosition - getMin();
+    }
+
+    /**
+     * Get the top left range (the lowest range)
+     *
+     * @return the lowest range
+     */
+    private Range getTopLeftRange() {
+        Range topLeftRange = ranges.get(0);
+        for (Range range : ranges) {
+            if (range.getLow() < topLeftRange.getLow()) {
+                topLeftRange = range;
+            }
+        }
+        return topLeftRange;
     }
 
     /**
