@@ -93,7 +93,6 @@ public class MultiRange extends Control {
     private BooleanProperty snapToTicks;    // indicates whether the range values should be aligned with the tick marks
     private DoubleProperty majorTickUnit;   // the unit distance between major tick marks
     private IntegerProperty minorTickCount; // the number of minor ticks to place between any two major ticks.
-    private DoubleProperty blockIncrement;  // sets the amount by which to adjust the slider if the track of the slider is clicked
 
     private ObjectProperty<Orientation> orientation;    // the orientation of the slider horizontal/vertical
     private BooleanProperty showTickLabels;             // whether labels of tick marks should be shown or not
@@ -105,7 +104,7 @@ public class MultiRange extends Control {
 
     /***************************************************************************
      *                                                                         *
-     * Private methods                                                         *
+     * MultiRange methods                                                      *
      *                                                                         *
      * There are some duplicate methods: one is using streams just to learn    *
      * and practise...                                                         *
@@ -165,6 +164,7 @@ public class MultiRange extends Control {
      * @see #isValidValueNS(boolean, Range, double) for a version without streams (may be faster...)
      */
     private boolean isValidValue(boolean isLow, Range range, double newValue) {
+        // TODO add the size of the thumb!
         if (isLow && newValue < range.getHigh()) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
                     .filter(r -> r.getHigh() < range.getHigh())
@@ -235,13 +235,128 @@ public class MultiRange extends Control {
     }
 
     /**
+     * Check if a given position is in between any range.
+     * This will be used to decide where and how to insert a new range in the slider.
+     *
+     * @param newPosition the new position
+     * @return whether the new position is in between a previously set range or not
+     * @see #isInBetweenRangeNS(double) for a version without streams (may be faster...)
+     */
+    public boolean isInBetweenRange(double newPosition) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get())
+                .filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny();
+        return rangeOptional.map(range -> true).orElse(false);
+    }
+
+    /**
+     * Works like {@link #isInBetweenRange(double)} function without using streams.
+     */
+    private boolean isInBetweenRangeNS(double newPosition) {
+        for (Range range : ranges) {
+            if (range.getId() != currentRangeId.get()) {
+                if (newPosition > range.getLow() && newPosition < range.getHigh()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Remove the currently selected range!
+     * If only one range is set then it cannot be removed.
+     */
+    public void removeSelectedRange() {
+        if (ranges.size() > 1) {
+            for (Iterator<Range> i = ranges.iterator(); i.hasNext(); ) {
+                Range item = i.next();
+                if (item.getId() == currentRangeId.get()) {
+                    i.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Get the range that corresponds to a given position. It means that the position is bigger than the low
+     * position of the range and lower than the high position of the range.
+     *
+     * @param newPosition position to check
+     * @return the range containing the position
+     * @see #getRangeForPositionNS(double) for a version without streams (may be faster...)
+     */
+    public Range getRangeForPosition(double newPosition) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getLow() <= newPosition && r.getHigh() >= newPosition).findAny();
+        return rangeOptional.orElse(null);
+    }
+
+    /**
+     * Works like {@link #getRangeForPosition(double)} function without using streams.
+     */
+    private Range getRangeForPositionNS(double newPosition) {
+        for (Range r : ranges) {
+            if (r.getLow() <= newPosition && r.getHigh() >= newPosition) {
+                return r;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the space between the given position and its closest right range.
+     *
+     * @param newPosition the clicked position
+     * @return distance to the low value of its closest right range
+     */
+    public double getSpaceToRightRange(double newPosition) {
+        Range closestRightRange = ranges.get(0);
+        boolean found = false;
+        for (Range r : ranges) {
+            if (r.getLow() >= newPosition && r.getLow() <= closestRightRange.getLow()) {
+                closestRightRange = r;
+                found = true;
+            }
+        }
+
+        if (found) {
+            return closestRightRange.getLow() - newPosition;
+        }
+
+        return getMax();
+    }
+
+    /**
+     * Returns the space between the given position and its closest left range.
+     *
+     * @param newPosition the clicked position
+     * @return distance to the high value of its closest left range
+     */
+    public double getSpaceToLeftRange(double newPosition) {
+        Range closestLeftRange = ranges.get(0);
+        boolean found = false;
+        for (Range r : ranges) {
+            if (r.getHigh() <= newPosition && r.getHigh() >= closestLeftRange.getHigh()) {
+                closestLeftRange = r;
+                found = true;
+            }
+        }
+
+        if (found) {
+            return newPosition - closestLeftRange.getHigh();
+        }
+
+        return getMax();
+    }
+
+    /**
      * @param d
      * @return
      */
     private double snapValueToTicks(double d) {
         double d1 = d;
         if (isSnapToTicks()) {
-            double d2 = 0.0D;
+            double d2;
             if (getMinorTickCount() != 0) {
                 d2 = getMajorTickUnit() / (double) (Math.max(getMinorTickCount(), 0) + 1);
             } else {
@@ -256,45 +371,10 @@ public class MultiRange extends Control {
     }
 
     /**
-     * @param newPosition
-     * @return
-     */
-    public boolean isInBetweenRange(double newPosition) {
-        return true;
-    }
-
-    /**
+     * Update the range with equal id to the given range on the list...
      *
+     * @param range range to update!
      */
-    public void removeSelectedRange() {
-        for (Iterator<Range> i = ranges.iterator(); i.hasNext(); ) {
-            Range item = i.next();
-            if (item.getId() == currentRangeId.get()) {
-                i.remove();
-                break;
-            }
-        }
-    }
-
-    public Range getRangeForPosition(double newPosition) {
-        // TODO
-        return ranges.stream().filter(r -> r.getLow() > newPosition && r.getHigh() < newPosition).findAny().get();
-    }
-
-    public double getSpaceToRightRange(double newPosition) {
-        return 0;
-    }
-
-    public double getSpaceToLeftRange(double newPosition) {
-        return 0;
-    }
-
-    /***************************************************************************
-     *                                                                         *
-     * Public methods                                                          *
-     *                                                                         *
-     **************************************************************************/
-
     public void updateRange(Range range) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
         if (rangeOptional.isPresent()) {
@@ -304,28 +384,23 @@ public class MultiRange extends Control {
         }
     }
 
-    public int getCurrentRangeId() {
-        return currentRangeId.get();
-    }
-
-    public IntegerProperty currentRangeIdProperty() {
-        return currentRangeId;
-    }
-
-    public void setCurrentRangeId(int currentRangeId) {
-        this.currentRangeId.set(currentRangeId);
-    }
-
     /**
-     * Create a new range
+     * Create a new range with the given low-high values and add it to the list. The skin maintain the
+     * current id which is bind to the #currentRangeId property.
      *
-     * @param low
-     * @param high
+     * @param low  low value
+     * @param high high value
      */
     public void createNewRange(double low, double high) {
         ranges.add(new Range(currentRangeId.get(), low, high));
         valueChangingProperty().setValue(true);
     }
+
+    /***************************************************************************
+     *                                                                         *
+     * Setters/Getters for the properties (slightly edited)                    *
+     *                                                                         *
+     **************************************************************************/
 
     public BooleanProperty valueChangingProperty() {
         if (valueChanging == null) {
@@ -354,12 +429,17 @@ public class MultiRange extends Control {
         return getValue(false);
     }
 
+    public int getCurrentRangeId() {
+        return currentRangeId.get();
+    }
 
-    /***************************************************************************
-     *                                                                         *
-     * Setters/Getters for the properties (slightly edited)                    *
-     *                                                                         *
-     **************************************************************************/
+    public IntegerProperty currentRangeIdProperty() {
+        return currentRangeId;
+    }
+
+    public void setCurrentRangeId(int currentRangeId) {
+        this.currentRangeId.set(currentRangeId);
+    }
 
     /**
      * Sets the maximum value for this Slider.
