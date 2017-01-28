@@ -79,6 +79,7 @@ public class MultiRange extends Control {
     private List<Range> ranges = new ArrayList<>();     // ranges in the slider
     private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);  // id of the thumb pressed
     private BooleanProperty valueChanging;      // whether a value has changed or not
+    private double thumbWidth = 0.5;
 
 
     /***************************************************************************
@@ -164,16 +165,15 @@ public class MultiRange extends Control {
      * @see #isValidValueNS(boolean, Range, double) for a version without streams (may be faster...)
      */
     private boolean isValidValue(boolean isLow, Range range, double newValue) {
-        // TODO add the size of the thumb!
-        if (isLow && newValue < range.getHigh()) {
+        if (isLow && newValue < range.getHigh() - thumbWidth) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
                     .filter(r -> r.getHigh() < range.getHigh())
-                    .filter(r -> r.getHigh() >= newValue)
+                    .filter(r -> r.getHigh() + thumbWidth >= newValue)
                     .count() == 0;
-        } else if (!isLow && range.getLow() < newValue) {
+        } else if (!isLow && range.getLow() + thumbWidth < newValue) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
                     .filter(r -> r.getLow() > range.getHigh())
-                    .filter(r -> r.getLow() <= newValue)
+                    .filter(r -> r.getLow() - thumbWidth <= newValue)
                     .count() == 0;
         }
         return false;
