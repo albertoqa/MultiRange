@@ -494,6 +494,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
 
             rangeBar = new StackPane();
             rangeBar.getStyleClass().setAll("range-bar");
+            rangeBar.setFocusTraversable(false);
         }
     }
 

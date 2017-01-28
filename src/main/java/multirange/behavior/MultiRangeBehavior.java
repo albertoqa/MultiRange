@@ -166,7 +166,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
             newPosition = (1 - position) * (multiRange.getMax() - multiRange.getMin()) + multiRange.getMin();
         }
 
-        newPosition = newPosition + range.getLow();
+        newPosition = newPosition + (range.getLow() - multiRange.getMin());
 
         /*
          * |--------L------c------H------------|
