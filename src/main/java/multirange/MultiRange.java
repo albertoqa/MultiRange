@@ -111,7 +111,6 @@ public class MultiRange extends Control {
 
     private List<Range> ranges = new ArrayList<>();     // ranges in the slider
     private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);  // id of the thumb pressed
-    private BooleanProperty valueChanging;      // whether a value has changed or not
     private double thumbWidth = 0.5;    // TODO
 
 
@@ -166,7 +165,9 @@ public class MultiRange extends Control {
                 range.setHigh(value);
             }
 
-            valueChangingProperty().setValue(true);
+            if(getSkin() != null) {
+                requestLayout();
+            }
         }
     }
 
@@ -179,7 +180,6 @@ public class MultiRange extends Control {
                 double value = snapValueToTicks(newValue);
                 if (isLow && isValidValue(true, range, value)) range.setLow(value);
                 else if (!isLow && isValidValue(false, range, value)) range.setHigh(value);
-                valueChangingProperty().setValue(true);
                 return;
             }
         }
@@ -457,7 +457,7 @@ public class MultiRange extends Control {
         if (rangeOptional.isPresent()) {
             int index = ranges.indexOf(rangeOptional.get());
             ranges.set(index, range);
-            valueChangingProperty().setValue(true);
+            requestLayout();
         }
     }
 
@@ -470,7 +470,45 @@ public class MultiRange extends Control {
      */
     public void createNewRange(double low, double high) {
         ranges.add(new Range(currentRangeId.get(), low, high));
-        valueChangingProperty().setValue(true);
+        requestLayout();
+    }
+
+    /**
+     * Ensures that min is always < max, that value is always
+     * somewhere between the two, and that if snapToTicks is set then the
+     * value will always be set to align with a tick mark.
+     */
+    private void adjustValues() {
+        adjustLowValues();
+        adjustHighValues();
+    }
+
+    private void adjustLowValues() {
+        /*
+         * We first look if the LowValue is between the min and max.
+         */
+        if (getLowValue() < getMin() || getLowValue() > getMax()) {
+            double value = Utils.clamp(getMin(), getLowValue(), getMax());
+            setValue(value, true);
+            /*
+             * If the LowValue seems right, we check if it's not superior to
+             * HighValue ONLY if the highValue itself is right. Because it may
+             * happen that the highValue has not yet been computed and is
+             * wrong, and therefore force the lowValue to change in a wrong way
+             * which may end up in an infinite loop.
+             */
+        } else if (getLowValue() >= getHighValue() && (getHighValue() >= getMin() && getHighValue() <= getMax())) {
+            double value = Utils.clamp(getMin(), getLowValue(), getHighValue());
+            setValue(value, true);
+        }
+    }
+
+    private void adjustHighValues() {
+        if (getHighValue() < getMin() || getHighValue() > getMax()) {
+            setValue(Utils.clamp(getMin(), getHighValue(), getMax()), false);
+        } else if (getHighValue() < getLowValue() && (getLowValue() >= getMin() && getLowValue() <= getMax())) {
+            setValue(Utils.clamp(getLowValue(), getHighValue(), getMax()), false);
+        }
     }
 
     /***************************************************************************
@@ -478,17 +516,6 @@ public class MultiRange extends Control {
      * Setters/Getters for the properties (slightly edited)                    *
      *                                                                         *
      **************************************************************************/
-
-    public BooleanProperty valueChangingProperty() {
-        if (valueChanging == null) {
-            valueChanging = new SimpleBooleanProperty(false);
-        }
-        return valueChanging;
-    }
-
-    public void setValueChanging(boolean valueChanging) {
-        this.valueChanging.set(valueChanging);
-    }
 
     public void setLowRangeValue(double newValue) {
         setValue(newValue, true);
@@ -516,6 +543,14 @@ public class MultiRange extends Control {
 
     public void setCurrentRangeId(int currentRangeId) {
         this.currentRangeId.set(currentRangeId);
+    }
+
+    public List<Range> getRanges() {
+        return ranges;
+    }
+
+    public void setRanges(List<Range> ranges) {
+        this.ranges = ranges;
     }
 
     /**
@@ -547,6 +582,7 @@ public class MultiRange extends Control {
                     if (get() < getMin()) {
                         setMin(get());
                     }
+                    adjustValues();
                 }
 
                 @Override
@@ -592,6 +628,7 @@ public class MultiRange extends Control {
                     if (get() > getMax()) {
                         setMax(get());
                     }
+                    adjustValues();
                 }
 
                 @Override
