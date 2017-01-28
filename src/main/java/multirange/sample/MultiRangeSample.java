@@ -18,7 +18,7 @@ public class MultiRangeSample extends Application {
 
         MultiRange multiRange = new MultiRange();
 
-        multiRange.setMax(20);
+        multiRange.setMax(40);
         multiRange.setMin(0);
         //multiRange.setLabelFormatter(new DateStringConverter(true));   // timeFormat
         multiRange.setShowTickMarks(true);

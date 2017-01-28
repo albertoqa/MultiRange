@@ -307,6 +307,17 @@ public class MultiRange extends Control {
     }
 
     /**
+     * Get the range with the given id
+     *
+     * @param id id of the range
+     * @return the range with the given id
+     */
+    public Range getRange(int id) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == id).findAny();
+        return rangeOptional.orElse(null);
+    }
+
+    /**
      * Returns the space between the given position and its closest right range.
      *
      * @param newPosition the clicked position
