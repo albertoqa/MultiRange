@@ -42,13 +42,9 @@ import java.util.List;
  */
 public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
 
-    private double SPACE_HIGH = 0.2;
-    private double SPACE_LOW = 0.02;
-    private double SPACE_MIN = 0.01;
-
-    private double minSpace;
-    private double padding;
-    private double separation;
+    private double minSpace;    // min space needed to create a new range
+    private double padding;     // padding to apply to fit a thumb
+    private double separation;  // distance between the low and high thumbs of a range
 
     private static final List<KeyBinding> MULTI_RANGE_BINDINGS = new ArrayList<>();
 
@@ -225,9 +221,9 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
         return getControl().removeSelectedRange();
     }
 
+    // TODO
     private void setSpaces(double thumbWidth) {
         double total = getControl().getMax() - getControl().getMin();
-        System.out.println("Total: " + total);
         minSpace = thumbWidth + (total / 20);
         separation = total / 20;
         padding = thumbWidth;

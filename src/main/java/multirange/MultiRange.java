@@ -41,6 +41,39 @@ import multirange.skin.MultiRangeSkin;
 import java.util.*;
 
 /**
+ * The MultiRange control is simply a JavaFX Slider control with support
+ * for multiple 'thumbs', rather than one. A thumb is the non-technical name for the
+ * draggable area inside the Slider / MultiRange that allows for a value to be
+ * set.
+ *
+ * <p>Because the MultiRange has multiple thumbs, it also has a few additional rules
+ * and user interactions:
+ *
+ * <ol>
+ *   <li>The 'lower value' thumb can not move past the 'higher value' thumb of any range.
+ *   <li>The 'high value' of any thumb cannot move past the 'low value' of any range.
+ *   <li>The 'low value' of any thumb cannot move below the 'high value' of any range.
+ *   <li>The area between any low and high values represents the allowable range.
+ *       For example, if the low value is 2 and the high value is 8, then the
+ *       allowable range is between 2 and 8.
+ *   <li>The allowable range area is rendered differently.
+ *   <li>A range can be removed by a right click over the itself. A minimum of one range
+ *       must be in the slider at any time.
+ * </ol>
+ *
+ *
+ * <h3>Code Samples</h3>
+ *
+ * <pre>
+ * {@code
+ * final MultiRange multiRange = new MultiRange(0, 100);
+ * multiRange.setShowTickMarks(true);
+ * multiRange.setShowTickLabels(true);
+ * multiRange.setBlockIncrement(10);}</pre>
+ *
+ * <p>This code creates a MultiRange with a min value of 0, a max value of 100,
+ *
+ *
  * Created by alberto on 09/01/2017.
  */
 public class MultiRange extends Control {
@@ -79,7 +112,7 @@ public class MultiRange extends Control {
     private List<Range> ranges = new ArrayList<>();     // ranges in the slider
     private IntegerProperty currentRangeId = new SimpleIntegerProperty(0);  // id of the thumb pressed
     private BooleanProperty valueChanging;      // whether a value has changed or not
-    private double thumbWidth = 0.5;
+    private double thumbWidth = 0.5;    // TODO
 
 
     /***************************************************************************
@@ -242,7 +275,7 @@ public class MultiRange extends Control {
      * @return whether the new position is in between a previously set range or not
      * @see #isInBetweenRangeNS(double) for a version without streams (may be faster...)
      */
-    public boolean isInBetweenRange(double newPosition) {
+    private boolean isInBetweenRange(double newPosition) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get())
                 .filter(r -> r.getLow() < newPosition && r.getHigh() > newPosition).findAny();
         return rangeOptional.map(range -> true).orElse(false);
@@ -289,7 +322,7 @@ public class MultiRange extends Control {
      * @return the range containing the position
      * @see #getRangeForPositionNS(double) for a version without streams (may be faster...)
      */
-    public Range getRangeForPosition(double newPosition) {
+    private Range getRangeForPosition(double newPosition) {
         Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getLow() <= newPosition && r.getHigh() >= newPosition).findAny();
         return rangeOptional.orElse(null);
     }
@@ -514,8 +547,6 @@ public class MultiRange extends Control {
                     if (get() < getMin()) {
                         setMin(get());
                     }
-                    // TODO
-                    //adjustValues();
                 }
 
                 @Override
@@ -561,8 +592,6 @@ public class MultiRange extends Control {
                     if (get() > getMax()) {
                         setMax(get());
                     }
-                    // TODO
-                    //adjustValues();
                 }
 
                 @Override

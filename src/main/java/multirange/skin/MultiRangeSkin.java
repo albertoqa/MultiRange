@@ -470,17 +470,12 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
                 // add 1 to the slider minor tick count since the axis draws one
                 // less minor ticks than the number given.
                 tickLine.setMinorTickCount(Math.max(multiRange.getMinorTickCount(), 0) + 1);
-//                getChildren().clear();    // TODO
                 getChildren().addAll(tickLine);
             } else {
                 tickLine.setTickLabelsVisible(labelsVisible);
                 tickLine.setTickMarkVisible(ticksVisible);
                 tickLine.setMinorTickVisible(ticksVisible);
             }
-        } else {
-//            getChildren().clear();    // TODO
-//            getChildren().addAll(track);
-//            tickLine = null;
         }
 
         getSkinnable().requestLayout();

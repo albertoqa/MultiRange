@@ -1,6 +1,8 @@
 package multirange;
 
 /**
+ * Define a new range with an id, a low and a high values.
+ * <p>
  * Created by alberto on 09/01/2017.
  */
 public class Range {
@@ -40,6 +42,6 @@ public class Range {
     }
 
     public double getAmplitude() {
-        return high-low;
+        return high - low;
     }
 }
