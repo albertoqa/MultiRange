@@ -272,10 +272,10 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
         double trackTop = (int) (startY + ((trackAreaHeight - trackHeight) / 2));
         lowThumbPos = (int) (startY + ((trackAreaHeight - thumbHeight) / 2));
 
-        positionAllThumbs();
-
         // layout track
         track.resizeRelocate(trackStart - trackRadius, trackTop, trackLength + trackRadius + trackRadius, trackHeight);
+
+        positionAllThumbs();
 
         if (showTickMarks) {
             tickLine.setLayoutX(trackStart);
@@ -289,7 +289,6 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             }
             tickLine = null;
         }
-
     }
 
     @Override
