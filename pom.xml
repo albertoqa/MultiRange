@@ -4,9 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.albertoqa</groupId>
+    <groupId>com.albertoquesada</groupId>
     <artifactId>multi-range</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <name>MultiRange</name>
+    <description>MultiRange Control for JavaFX</description>
+    <url>hhttps://github.com/albertoqa/MultiRange</url>
+
     <build>
         <plugins>
             <plugin>
@@ -20,5 +27,31 @@
         </plugins>
     </build>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/albertoqa/MultiRange/</url>
+        <connection>scm:git:git://github.com/albertoqa/MultiRange.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/albertoqa/MultiRange.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/albertoqa/MultiRange/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <name>Alberto Quesada</name>
+            <email>qa.alberto@gmail.com</email>
+            <url>http://albertoquesada.com/</url>
+        </developer>
+    </developers>
 
 </project>
