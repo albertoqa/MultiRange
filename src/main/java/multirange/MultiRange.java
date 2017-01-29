@@ -161,8 +161,10 @@ public class MultiRange extends Control {
 
             if (isLow && isValidValue(true, range, value)) {
                 range.setLow(value);
+                setLowValue(value);
             } else if (!isLow && isValidValue(false, range, value)) {
                 range.setHigh(value);
+                setHighValue(value);
             }
 
             if(getSkin() != null) {
@@ -643,6 +645,48 @@ public class MultiRange extends Control {
             };
         }
         return min;
+    }
+
+    // --- current low value (selected range)
+    /**
+     * The low value property represents the current position of the low value
+     * thumb, and is within the allowable range as specified by the
+     * {@link #minProperty() min} and {@link #maxProperty() max} properties. By
+     * default this value is 0.
+     */
+    public final DoubleProperty lowValueProperty() {
+        return lowValue;
+    }
+    private DoubleProperty lowValue = new SimpleDoubleProperty(this, "lowValue", 0.0D);
+
+    /**
+     * Sets the low value for the range slider, which may or may not be clamped
+     * to be within the allowable range as specified by the
+     * {@link #minProperty() min} and {@link #maxProperty() max} properties.
+     */
+    public final void setLowValue(double d) {
+        lowValueProperty().set(d);
+    }
+
+    // --- current high value (selected range)
+    /**
+     * The high value property represents the current position of the high value
+     * thumb, and is within the allowable range as specified by the
+     * {@link #minProperty() min} and {@link #maxProperty() max} properties. By
+     * default this value is 100.
+     */
+    public final DoubleProperty highValueProperty() {
+        return highValue;
+    }
+    private DoubleProperty highValue = new SimpleDoubleProperty(this, "highValue", 100D);
+
+    /**
+     * Sets the high value for the range slider, which may or may not be clamped
+     * to be within the allowable range as specified by the
+     * {@link #minProperty() min} and {@link #maxProperty() max} properties.
+     */
+    public final void setHighValue(double d) {
+        if (!highValueProperty().isBound()) highValueProperty().set(d);
     }
 
     /**
