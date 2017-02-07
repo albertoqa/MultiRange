@@ -7,7 +7,7 @@ Any number of ranges can be added to the slider (if there is enought space...).
 --
 
 <b>MultiRange Control</b></br></br>
-![alt tag](multirange.gif)
+![alt tag](./multirange.gif)
 
 ## Create programatically
 
