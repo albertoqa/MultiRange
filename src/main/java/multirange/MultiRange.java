@@ -167,7 +167,7 @@ public class MultiRange extends Control {
                 setHighValue(value);
             }
 
-            if(getSkin() != null) {
+            if (getSkin() != null) {
                 requestLayout();
             }
         }
@@ -200,6 +200,9 @@ public class MultiRange extends Control {
      * @see #isValidValueNS(boolean, Range, double) for a version without streams (may be faster...)
      */
     private boolean isValidValue(boolean isLow, Range range, double newValue) {
+        if (newValue < getMin() || newValue > getMax()) {
+            return false;
+        }
         if (isLow && newValue < range.getHigh() - thumbWidth) {
             return ranges.stream().filter(r -> r.getId() != range.getId())
                     .filter(r -> r.getHigh() < range.getHigh())
@@ -218,6 +221,9 @@ public class MultiRange extends Control {
      * Works like {@link #isValidValue(boolean, Range, double)} function without using streams.
      */
     private boolean isValidValueNS(boolean isLow, Range range, double newValue) {
+        if (newValue < getMin() || newValue > getMax()) {
+            return false;
+        }
         if (isLow && newValue < range.getHigh()) {
             for (Range r : ranges) {
                 if (r.getId() != range.getId() && r.getHigh() < range.getHigh() && r.getHigh() >= newValue) {
@@ -232,6 +238,21 @@ public class MultiRange extends Control {
             }
         }
         return true;
+    }
+
+    /**
+     * Check if all ranges are valid and if any of them is not valid, try to correct it!
+     * TODO this is working but... it is not a good solution!
+     */
+    public void validateValues() {
+        for (Range r : ranges) {
+            if (!isValidValue(true, r, r.getLow())) {
+                r.setLow(r.getHigh() - 300000);
+            }
+            if (!isValidValue(false, r, r.getHigh())) {
+                r.setHigh(r.getLow() + 300000);
+            }
+        }
     }
 
     /**
@@ -251,6 +272,24 @@ public class MultiRange extends Control {
             }
         }
         return -1;
+    }
+
+    /**
+     * Get the low/high property of the range currently selected.
+     *
+     * @param isLow whether the value to retrieve is the low or the high
+     * @return the property
+     */
+    private DoubleProperty getValueProperty(boolean isLow) {
+        Optional<Range> rangeOptional = ranges.stream().filter(r -> r.getId() == currentRangeId.get()).findAny();
+        if (rangeOptional.isPresent()) {
+            if (isLow) {
+                return rangeOptional.get().lowProperty();
+            } else {
+                return rangeOptional.get().highProperty();
+            }
+        }
+        return null;
     }
 
     /**
@@ -555,6 +594,14 @@ public class MultiRange extends Control {
         this.ranges = ranges;
     }
 
+    public DoubleProperty getLowValueProperty() {
+        return getValueProperty(true);
+    }
+
+    public DoubleProperty getHighValueProperty() {
+        return getValueProperty(false);
+    }
+
     /**
      * Sets the maximum value for this Slider.
      *
@@ -647,7 +694,8 @@ public class MultiRange extends Control {
         return min;
     }
 
-    // --- current low value (selected range)
+    // --- low value
+
     /**
      * The low value property represents the current position of the low value
      * thumb, and is within the allowable range as specified by the
@@ -657,6 +705,7 @@ public class MultiRange extends Control {
     public final DoubleProperty lowValueProperty() {
         return lowValue;
     }
+
     private DoubleProperty lowValue = new SimpleDoubleProperty(this, "lowValue", 0.0D);
 
     /**
@@ -668,7 +717,8 @@ public class MultiRange extends Control {
         lowValueProperty().set(d);
     }
 
-    // --- current high value (selected range)
+    // --- high value
+
     /**
      * The high value property represents the current position of the high value
      * thumb, and is within the allowable range as specified by the
@@ -678,6 +728,7 @@ public class MultiRange extends Control {
     public final DoubleProperty highValueProperty() {
         return highValue;
     }
+
     private DoubleProperty highValue = new SimpleDoubleProperty(this, "highValue", 100D);
 
     /**

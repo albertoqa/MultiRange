@@ -61,7 +61,7 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
      */
     private MultiRangeBehavior(MultiRange control, List<KeyBinding> keyBindings) {
         super(control, keyBindings);
-        setSpaces(15);
+        setSpaces(0.5);
     }
 
     /**
@@ -224,9 +224,9 @@ public class MultiRangeBehavior extends BehaviorBase<MultiRange> {
     // TODO
     private void setSpaces(double thumbWidth) {
         double total = getControl().getMax() - getControl().getMin();
+        minSpace = thumbWidth + (total / 20);
         separation = total / 20;
-        minSpace = thumbWidth + separation;
-        padding = thumbWidth / 2;
+        padding = thumbWidth;
     }
 
 }

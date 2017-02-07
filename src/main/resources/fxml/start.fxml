@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import multirange.MultiRange?>
+<StackPane id="RecordConfig" fx:id="stackPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="568.0" minWidth="-Infinity" prefHeight="568.0" prefWidth="820.0" styleClass="grayBack" fx:controller="multirange.sample.Control" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <AnchorPane fx:id="anchorPane" prefHeight="684.0" prefWidth="730.0">
+            <children>
+                <AnchorPane layoutX="252.0" layoutY="356.0" maxHeight="300.0" prefHeight="230.0" prefWidth="542.0" style="-fx-background-color: #ffffff;" AnchorPane.bottomAnchor="74.0" AnchorPane.leftAnchor="252.0" AnchorPane.rightAnchor="26.0" AnchorPane.topAnchor="355.0">
+                    <children>
+                        <MultiRange fx:id="multiRange" layoutX="17.0" layoutY="61.0" prefHeight="27.0" prefWidth="418.0" AnchorPane.leftAnchor="17.0" AnchorPane.rightAnchor="17.0" stylesheets="@../multirange/multirange.css"/>
+                    </children>
+                </AnchorPane>
+            </children>
+        </AnchorPane>
+    </children>
+</StackPane>

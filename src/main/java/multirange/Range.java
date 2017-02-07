@@ -1,5 +1,8 @@
 package multirange;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+
 /**
  * Define a new range with an id, a low and a high values.
  * <p>
@@ -8,13 +11,13 @@ package multirange;
 public class Range {
 
     private int id;
-    private Double low;
-    private Double high;
+    private DoubleProperty low;
+    private DoubleProperty high;
 
     Range(int id, Double low, Double high) {
         this.id = id;
-        this.low = low;
-        this.high = high;
+        this.low = new SimpleDoubleProperty(low);
+        this.high = new SimpleDoubleProperty(high);
     }
 
     public int getId() {
@@ -25,23 +28,31 @@ public class Range {
         this.id = id;
     }
 
-    public Double getLow() {
+    public double getLow() {
+        return low.get();
+    }
+
+    public DoubleProperty lowProperty() {
         return low;
     }
 
-    public void setLow(Double low) {
-        this.low = low;
+    public void setLow(double low) {
+        this.low.set(low);
     }
 
-    public Double getHigh() {
+    public double getHigh() {
+        return high.get();
+    }
+
+    public DoubleProperty highProperty() {
         return high;
     }
 
-    public void setHigh(Double high) {
-        this.high = high;
+    public void setHigh(double high) {
+        this.high.set(high);
     }
 
     public double getAmplitude() {
-        return high - low;
+        return getHigh() - getLow();
     }
 }
