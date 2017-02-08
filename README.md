@@ -1,15 +1,16 @@
-# MultiRange Custom Control
+# MultiRange Control
 
 MultiRange is a JavaFX control similar to the default Slider control but with support for any number of thumbs (always in pairs).
 
-Any number of ranges can be added to the slider (if there is enought space...).
+## Usage
 
---
-
-<b>MultiRange Control</b></br></br>
 ![alt tag](./multirange.gif)
 
-## Create programatically
+To create a new range just click over the slider or over any range. A range can be modified dragging its thumbs.
+
+To delete a range right-click over the range.
+
+### Create programatically
 
 ```Java
 // Create a new MultiRange with min/max values
@@ -28,7 +29,7 @@ multiRange.setSnapToTicks(true);
 
 ```
 
-## Create with FXML
+### Create with FXML
 
 ```xml
 <?import multirange.MultiRange?>
@@ -45,7 +46,14 @@ multiRange.setSnapToTicks(true);
 
 ### Maven
 
-
+```xml
+<dependency>
+  <groupId>com.albertoquesada</groupId>
+  <artifactId>multi-range</artifactId>
+  <version>0.1</version>
+</dependency>
+```
 
 ### Manual
 
+[Download](https://oss.sonatype.org/content/groups/public/com/albertoquesada/multi-range/0.1/multi-range-0.1.jar) the JAR file and place it on your classpath.
