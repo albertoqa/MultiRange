@@ -7,79 +7,79 @@
 
 .multi-range .low-thumb,
 .multi-range .high-thumb {
-   -fx-background-color:
-           linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
-           -fx-inner-border,
-           -fx-body-color;
-   -fx-background-insets: 0, 1, 2;
-   -fx-background-radius: 1.0em; /* makes sure this remains circular */
-   -fx-padding: 0.583333em;  /* 7 */
-   -fx-effect: dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 5, 0.0 , 0, 2);
+    -fx-background-color:
+            linear-gradient(to bottom, derive(-fx-text-box-border, -20%), derive(-fx-text-box-border, -30%)),
+            -fx-inner-border,
+            -fx-body-color;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 1.0em; /* makes sure this remains circular */
+    -fx-padding: 0.583333em;  /* 7 */
+    -fx-effect: dropshadow(two-pass-box , rgba(0, 0, 0, 0.1), 5, 0.0 , 0, 2);
 }
 
 .multi-range:focused .low-thumb,
 .multi-range:focused .high-thumb {
-   -fx-background-radius: 1.0em; /* makes sure this remains circular */
+    -fx-background-radius: 1.0em; /* makes sure this remains circular */
 }
 
 .multi-range .low-thumb:focused,
 .multi-range .high-thumb:focused {
-   -fx-background-color:
-           -fx-focus-color,
-           derive(-fx-color,-36%),
-           derive(-fx-color,73%),
-           linear-gradient(to bottom, derive(-fx-color,-19%),derive(-fx-color,61%));
-   -fx-background-insets: -1.4, 0, 1, 2;
-   -fx-background-radius: 1.0em; /* makes sure this remains circular */
+    -fx-background-color:
+            -fx-focus-color,
+            derive(-fx-color,-36%),
+            derive(-fx-color,73%),
+            linear-gradient(to bottom, derive(-fx-color,-19%),derive(-fx-color,61%));
+    -fx-background-insets: -1.4, 0, 1, 2;
+    -fx-background-radius: 1.0em; /* makes sure this remains circular */
 }
 
 .multi-range .low-thumb:hover,
 .multi-range .high-thumb:hover {
-   -fx-color: -fx-hover-base;
+    -fx-color: -fx-hover-base;
 }
 
 .multi-range .range-bar {
-   -fx-background-color: -fx-focus-color;
+    -fx-background-color: #6780a1;
 }
 
 .multi-range .low-thumb:pressed,
 .multi-range .high-thumb:pressed {
-   -fx-color: -fx-pressed-base;
+    -fx-color: -fx-pressed-base;
 }
 
 .multi-range .track {
-   -fx-background-color:
-           -fx-shadow-highlight-color,
-           linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
-           linear-gradient(to bottom,
-           derive(-fx-control-inner-background, -9%),
-           derive(-fx-control-inner-background, 0%),
-           derive(-fx-control-inner-background, -5%),
-           derive(-fx-control-inner-background, -12%)
-           );
-   -fx-background-insets: 0 0 -1 0, 0, 1;
-   -fx-background-radius: 0.25em, 0.25em, 0.166667em; /* 3 3 2 */
-   -fx-padding: 0.25em; /* 3 */
+    -fx-background-color:
+            -fx-shadow-highlight-color,
+            linear-gradient(to bottom, derive(-fx-text-box-border, -10%), -fx-text-box-border),
+            linear-gradient(to bottom,
+            derive(-fx-control-inner-background, -9%),
+            derive(-fx-control-inner-background, 0%),
+            derive(-fx-control-inner-background, -5%),
+            derive(-fx-control-inner-background, -12%)
+            );
+    -fx-background-insets: 0 0 -1 0, 0, 1;
+    -fx-background-radius: 0.25em, 0.25em, 0.166667em; /* 3 3 2 */
+    -fx-padding: 0.25em; /* 3 */
 }
 
 .multi-range:vertical .track {
-   -fx-background-color:
-           -fx-shadow-highlight-color,
-           -fx-text-box-border,
-           linear-gradient(to right,
-           derive(-fx-control-inner-background, -9%),
-           -fx-control-inner-background,
-           derive(-fx-control-inner-background, -9%)
-           );
+    -fx-background-color:
+            -fx-shadow-highlight-color,
+            -fx-text-box-border,
+            linear-gradient(to right,
+            derive(-fx-control-inner-background, -9%),
+            -fx-control-inner-background,
+            derive(-fx-control-inner-background, -9%)
+            );
 }
 
 .multi-range .axis {
-   -fx-tick-label-fill: derive(-fx-text-background-color, 30%);
-   -fx-tick-length: 5px;
-   -fx-minor-tick-length: 3px;
-   -fx-border-color: null;
+    -fx-tick-label-fill: derive(-fx-text-background-color, 30%);
+    -fx-tick-length: 5px;
+    -fx-minor-tick-length: 3px;
+    -fx-border-color: null;
 }
 
 .multi-range:disabled {
-   -fx-opacity: 0.4;
+    -fx-opacity: 0.4;
 }
