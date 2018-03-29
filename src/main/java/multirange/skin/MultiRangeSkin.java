@@ -488,7 +488,7 @@ public class MultiRangeSkin extends BehaviorSkinBase<MultiRange, MultiRangeBehav
             low.setFocusTraversable(false);
 
             high = new ThumbPane();
-            high.getStyleClass().setAll("low-thumb");
+            high.getStyleClass().setAll("high-thumb");
             high.setFocusTraversable(false);
 
             rangeBar = new StackPane();
